@@ -33,24 +33,24 @@ const { flipbooks } = Astro.props;
     <div class="modal-header">
       <h2 id="modal-title" class="modal-title"></h2>
       <div class="header-controls">
-        <button id="zoom-out" class="icon-btn" aria-label="Zoom out" title="Zoom out">
+        <button id="zoom-out" class="icon-btn" aria-label="Σμίκρυνση" title="Σμίκρυνση">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21l-4.35-4.35M8 11h6"></path>
           </svg>
         </button>
-        <button id="zoom-in" class="icon-btn" aria-label="Zoom in" title="Zoom in">
+        <button id="zoom-in" class="icon-btn" aria-label="Μεγέθυνση" title="Μεγέθυνση">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21l-4.35-4.35M11 8v6M8 11h6"></path>
           </svg>
         </button>
-        <button id="fullscreen-btn" class="icon-btn" aria-label="Toggle fullscreen" title="Fullscreen">
+        <button id="fullscreen-btn" class="icon-btn" aria-label="Πλήρης Οθόνη" title="Πλήρης Οθόνη">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
           </svg>
         </button>
-        <button id="close-modal" class="icon-btn" aria-label="Close">
+        <button id="close-modal" class="icon-btn" aria-label="Κλείσιμο">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12"></path>
           </svg>
@@ -66,31 +66,31 @@ const { flipbooks } = Astro.props;
       </div>
 
       <div class="flipbook-controls">
-        <button id="first-page" class="control-btn secondary" aria-label="First page" title="First page">
+        <button id="first-page" class="control-btn secondary" aria-label="Πρώτη Σελίδα" title="Πρώτη Σελίδα">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
           </svg>
         </button>
 
-        <button id="prev-page" class="control-btn" aria-label="Previous page">
+        <button id="prev-page" class="control-btn" aria-label="Προηγούμενη Σελίδα">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M15 18l-6-6 6-6"></path>
           </svg>
-          <span>Previous</span>
+          <span>Προηγούμενη</span>
         </button>
 
         <div class="page-indicator">
           <span id="current-page">0</span> / <span id="total-pages">0</span>
         </div>
 
-        <button id="next-page" class="control-btn" aria-label="Next page">
-          <span>Next</span>
+        <button id="next-page" class="control-btn" aria-label="Επόμενη Σελίδα">
+          <span>Επόμενη</span>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 18l6-6-6-6"></path>
           </svg>
         </button>
 
-        <button id="last-page" class="control-btn secondary" aria-label="Last page" title="Last page">
+        <button id="last-page" class="control-btn secondary" aria-label="Τελευταία Σελίδα" title="Τελευταία Σελίδα">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
           </svg>
@@ -100,7 +100,7 @@ const { flipbooks } = Astro.props;
 
     <div id="loading" class="loading">
       <div class="spinner-ring"></div>
-      <p>Loading flipbook...</p>
+      <p>Φόρτωση...</p>
     </div>
   </div>
 </div>
