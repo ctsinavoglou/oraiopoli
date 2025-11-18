@@ -39,10 +39,17 @@ const { flipbooks } = Astro.props;
             <path d="M21 21l-4.35-4.35M8 11h6"></path>
           </svg>
         </button>
+        <span id="zoom-level" class="zoom-level" title="Επίπεδο Μεγέθυνσης">100%</span>
         <button id="zoom-in" class="icon-btn" aria-label="Μεγέθυνση" title="Μεγέθυνση">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21l-4.35-4.35M11 8v6M8 11h6"></path>
+          </svg>
+        </button>
+        <button id="zoom-reset" class="icon-btn" aria-label="Επαναφορά Μεγέθυνσης" title="Επαναφορά Μεγέθυνσης">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.35-4.35M11 11h.01"></path>
           </svg>
         </button>
         <button id="fullscreen-btn" class="icon-btn" aria-label="Πλήρης Οθόνη" title="Πλήρης Οθόνη">
@@ -190,6 +197,15 @@ const { flipbooks } = Astro.props;
     transform: scale(1.05);
   }
 
+  .zoom-level {
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0 0.5rem;
+    min-width: 50px;
+    text-align: center;
+  }
+
   .flipbook-viewer {
     flex: 1;
     display: flex;
@@ -206,10 +222,30 @@ const { flipbooks } = Astro.props;
     justify-content: center;
     padding: 2rem;
     overflow: hidden;
+    position: relative;
+    cursor: grab;
+  }
+
+  .flipbook-wrapper.zoomed {
+    cursor: grab;
+  }
+
+  .flipbook-wrapper.dragging {
+    cursor: grabbing;
   }
 
   .flipbook {
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+    transform-origin: center center;
+    transition: none;
+  }
+
+  .flipbook-wrapper.zoomed .flipbook {
+    pointer-events: none;
+  }
+
+  .flipbook-wrapper.zoomed {
+    pointer-events: auto;
   }
 
   :global(.stf__parent) {
@@ -394,9 +430,18 @@ const { flipbooks } = Astro.props;
       this.pageFlip = null;
       this.pages = [];
       this.currentScale = 1;
+      this.panX = 0;
+      this.panY = 0;
+      this.isDragging = false;
+      this.hasMoved = false;
+      this.dragStartX = 0;
+      this.dragStartY = 0;
+      this.dragStartPanX = 0;
+      this.dragStartPanY = 0;
       this.initRetryCount = 0;
       this.maxRetries = 10;
       this.resizeHandler = null;
+      this.lastTouchDistance = 0;
 
       this.modal = document.getElementById('flipbook-modal');
       this.modalTitle = document.getElementById('modal-title');
@@ -410,6 +455,8 @@ const { flipbooks } = Astro.props;
       this.lastBtn = document.getElementById('last-page');
       this.zoomInBtn = document.getElementById('zoom-in');
       this.zoomOutBtn = document.getElementById('zoom-out');
+      this.zoomResetBtn = document.getElementById('zoom-reset');
+      this.zoomLevelEl = document.getElementById('zoom-level');
       this.fullscreenBtn = document.getElementById('fullscreen-btn');
       this.currentPageEl = document.getElementById('current-page');
       this.totalPagesEl = document.getElementById('total-pages');
@@ -437,6 +484,7 @@ const { flipbooks } = Astro.props;
       // Zoom
       this.zoomInBtn.addEventListener('click', () => this.zoomIn());
       this.zoomOutBtn.addEventListener('click', () => this.zoomOut());
+      this.zoomResetBtn.addEventListener('click', () => this.resetZoom());
 
       // Fullscreen
       this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
@@ -451,6 +499,198 @@ const { flipbooks } = Astro.props;
         if (e.key === 'Home') this.firstPage();
         if (e.key === 'End') this.lastPage();
       });
+
+      // Pan and zoom controls
+      this.setupPanAndZoom();
+    }
+
+    setupPanAndZoom() {
+      const wrapper = this.flipbookWrapper;
+
+      // Mouse wheel zoom
+      wrapper.addEventListener('wheel', (e) => {
+        if (!this.modal.classList.contains('active')) return;
+
+        e.preventDefault();
+        const delta = e.deltaY;
+        const factor = delta > 0 ? 0.9 : 1.1;
+
+        // Get mouse position relative to wrapper
+        const rect = wrapper.getBoundingClientRect();
+        const clientX = e.clientX - rect.left;
+        const clientY = e.clientY - rect.top;
+
+        this.zoom(factor, clientX, clientY);
+      }, { passive: false });
+
+      // Mouse drag to pan
+      wrapper.addEventListener('mousedown', (e) => {
+        if (!this.modal.classList.contains('active')) return;
+        if (this.currentScale <= 1.01) return; // Only allow dragging when zoomed
+
+        e.preventDefault();
+        e.stopPropagation(); // Prevent event from reaching StPageFlip
+        this.isDragging = true;
+        this.dragStartX = e.clientX;
+        this.dragStartY = e.clientY;
+        this.dragStartPanX = this.panX;
+        this.dragStartPanY = this.panY;
+        this.hasMoved = false; // Track if user actually moved the mouse
+        wrapper.classList.add('dragging');
+      }, true); // Use capture phase to intercept before StPageFlip
+
+      document.addEventListener('mousemove', (e) => {
+        if (!this.isDragging) return;
+
+        e.preventDefault();
+        e.stopPropagation(); // Prevent event from reaching StPageFlip
+        const dx = e.clientX - this.dragStartX;
+        const dy = e.clientY - this.dragStartY;
+
+        // Track if there was actual movement
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+          this.hasMoved = true;
+        }
+
+        this.panX = this.dragStartPanX + dx;
+        this.panY = this.dragStartPanY + dy;
+
+        this.applyTransform(false);
+      }, true); // Use capture phase
+
+      document.addEventListener('mouseup', (e) => {
+        if (this.isDragging) {
+          // Stop propagation if user actually dragged
+          if (this.hasMoved) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          this.isDragging = false;
+          this.hasMoved = false;
+          wrapper.classList.remove('dragging');
+        }
+      }, true); // Use capture phase
+
+      // Also prevent clicks on the flipbook when zoomed to avoid accidental page flips
+      wrapper.addEventListener('click', (e) => {
+        if (this.currentScale > 1.01) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true); // Use capture phase
+
+      // Double-click to zoom in/out
+      wrapper.addEventListener('dblclick', (e) => {
+        if (!this.modal.classList.contains('active')) return;
+
+        e.preventDefault();
+        const rect = wrapper.getBoundingClientRect();
+        const clientX = e.clientX - rect.left;
+        const clientY = e.clientY - rect.top;
+
+        if (this.currentScale > 1.01) {
+          // Zoom out to fit
+          this.resetZoom();
+        } else {
+          // Zoom in
+          this.zoom(2, clientX, clientY);
+        }
+      });
+
+      // Touch support for pinch-to-zoom
+      let touchStartDistance = 0;
+      let touchStartScale = 1;
+      let touchCenter = { x: 0, y: 0 };
+
+      wrapper.addEventListener('touchstart', (e) => {
+        if (!this.modal.classList.contains('active')) return;
+
+        if (e.touches.length === 2) {
+          e.preventDefault();
+          e.stopPropagation();
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+
+          touchStartDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+          );
+          touchStartScale = this.currentScale;
+
+          const rect = wrapper.getBoundingClientRect();
+          touchCenter.x = ((touch1.clientX + touch2.clientX) / 2) - rect.left;
+          touchCenter.y = ((touch1.clientY + touch2.clientY) / 2) - rect.top;
+        } else if (e.touches.length === 1 && this.currentScale > 1.01) {
+          // Single touch drag when zoomed
+          e.preventDefault();
+          e.stopPropagation();
+          const touch = e.touches[0];
+          this.isDragging = true;
+          this.hasMoved = false;
+          this.dragStartX = touch.clientX;
+          this.dragStartY = touch.clientY;
+          this.dragStartPanX = this.panX;
+          this.dragStartPanY = this.panY;
+        }
+      }, { passive: false, capture: true });
+
+      wrapper.addEventListener('touchmove', (e) => {
+        if (!this.modal.classList.contains('active')) return;
+
+        if (e.touches.length === 2) {
+          e.preventDefault();
+          e.stopPropagation();
+          const touch1 = e.touches[0];
+          const touch2 = e.touches[1];
+
+          const currentDistance = Math.hypot(
+            touch2.clientX - touch1.clientX,
+            touch2.clientY - touch1.clientY
+          );
+
+          const factor = currentDistance / touchStartDistance;
+          const newScale = Math.min(Math.max(touchStartScale * factor, 0.5), 4);
+
+          if (newScale !== this.currentScale) {
+            this.currentScale = newScale;
+            this.applyTransform(false);
+            this.updateWrapperState();
+          }
+        } else if (e.touches.length === 1 && this.isDragging) {
+          e.preventDefault();
+          e.stopPropagation();
+          const touch = e.touches[0];
+          const dx = touch.clientX - this.dragStartX;
+          const dy = touch.clientY - this.dragStartY;
+
+          // Track if there was actual movement
+          if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+            this.hasMoved = true;
+          }
+
+          this.panX = this.dragStartPanX + dx;
+          this.panY = this.dragStartPanY + dy;
+
+          this.applyTransform(false);
+        }
+      }, { passive: false, capture: true });
+
+      wrapper.addEventListener('touchend', (e) => {
+        if (this.isDragging && this.hasMoved) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        this.isDragging = false;
+        this.hasMoved = false;
+      }, { capture: true });
+    }
+
+    resetZoom() {
+      this.currentScale = 1;
+      this.panX = 0;
+      this.panY = 0;
+      this.applyTransform(true);
+      this.updateWrapperState();
     }
 
     async open(flipbookId) {
@@ -467,9 +707,27 @@ const { flipbooks } = Astro.props;
       // Fully recreate the root flipbook element
       this.recreateRoot();
 
-      // Reset zoom state
+      // Reset zoom and pan state
       this.currentScale = 1;
+      this.panX = 0;
+      this.panY = 0;
+      this.isDragging = false;
+      this.hasMoved = false;
       this.initRetryCount = 0;
+
+      // Apply the reset transform immediately
+      if (this.flipbookEl) {
+        this.flipbookEl.style.transform = 'translate(0px, 0px) scale(1)';
+        this.flipbookEl.style.transition = 'none';
+      }
+
+      // Update zoom level display and wrapper state
+      if (this.zoomLevelEl) {
+        this.zoomLevelEl.textContent = '100%';
+      }
+      if (this.flipbookWrapper) {
+        this.flipbookWrapper.classList.remove('zoomed');
+      }
 
       try {
         // Load content with timeout
@@ -590,6 +848,10 @@ const { flipbooks } = Astro.props;
       this.currentFlipbook = null;
       this.initRetryCount = 0;
       this.currentScale = 1;
+      this.panX = 0;
+      this.panY = 0;
+      this.isDragging = false;
+      this.hasMoved = false;
 
       // Reset page indicators
       this.currentPageEl.textContent = '0';
@@ -951,19 +1213,80 @@ const { flipbooks } = Astro.props;
     }
 
     zoomIn() {
-      this.currentScale = Math.min(this.currentScale + 0.1, 2);
-      this.applyZoom();
+      // Zoom toward the center of the viewport
+      const wrapper = this.flipbookWrapper;
+      const rect = wrapper.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      this.zoom(1.2, centerX, centerY);
     }
 
     zoomOut() {
-      this.currentScale = Math.max(this.currentScale - 0.1, 0.5);
-      this.applyZoom();
+      // Zoom out from the center of the viewport
+      const wrapper = this.flipbookWrapper;
+      const rect = wrapper.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      this.zoom(0.8, centerX, centerY);
     }
 
-    applyZoom() {
+    zoom(factor, clientX, clientY) {
+      const wrapper = this.flipbookWrapper;
+      const flipbook = this.flipbookEl;
+      if (!wrapper || !flipbook) return;
+
+      // Calculate new scale
+      const newScale = Math.min(Math.max(this.currentScale * factor, 0.5), 4);
+
+      // If we're not actually changing the scale, return
+      if (newScale === this.currentScale) return;
+
+      // Get the current transform values
+      const rect = flipbook.getBoundingClientRect();
+      const wrapperRect = wrapper.getBoundingClientRect();
+
+      // Calculate the point relative to the wrapper
+      const pointX = clientX - wrapperRect.left;
+      const pointY = clientY - wrapperRect.top;
+
+      // Calculate the point relative to the flipbook (before zoom)
+      const flipbookX = (pointX - rect.left + wrapperRect.left) / this.currentScale;
+      const flipbookY = (pointY - rect.top + wrapperRect.top) / this.currentScale;
+
+      // Calculate new position to keep the point under the cursor
+      const scaleFactor = newScale / this.currentScale;
+      const newX = this.panX - (flipbookX * (newScale - this.currentScale));
+      const newY = this.panY - (flipbookY * (newScale - this.currentScale));
+
+      this.currentScale = newScale;
+      this.panX = newX;
+      this.panY = newY;
+
+      this.applyTransform();
+      this.updateWrapperState();
+    }
+
+    applyTransform(smooth = true) {
       if (this.flipbookEl) {
-        this.flipbookEl.style.transform = `scale(${this.currentScale})`;
-        this.flipbookEl.style.transition = 'transform 0.3s ease';
+        this.flipbookEl.style.transition = smooth ? 'transform 0.2s ease-out' : 'none';
+        this.flipbookEl.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.currentScale})`;
+      }
+      this.updateZoomLevel();
+    }
+
+    updateWrapperState() {
+      if (this.currentScale > 1.01) {
+        this.flipbookWrapper.classList.add('zoomed');
+      } else {
+        this.flipbookWrapper.classList.remove('zoomed');
+      }
+    }
+
+    updateZoomLevel() {
+      if (this.zoomLevelEl) {
+        this.zoomLevelEl.textContent = `${Math.round(this.currentScale * 100)}%`;
       }
     }
 
