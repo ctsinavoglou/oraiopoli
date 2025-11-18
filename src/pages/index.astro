@@ -3,26 +3,46 @@
 import Layout from '../layouts/Layout.astro';
 import FlipbookCard from '../components/FlipbookCard.astro';
 import FlipbookModal from '../components/FlipbookModal.astro';
+import fs from 'fs';
 
-const flipbooks = [
+function dataUri(path: string): string {
+  const abs = new URL(`../../public${path}`, import.meta.url);
+  const ext = path.split('.').pop()?.toLowerCase();
+  const mimeMap: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', svg: 'image/svg+xml' };
+  const mime = ext && mimeMap[ext] ? mimeMap[ext] : 'application/octet-stream';
+  const buf = fs.readFileSync(abs);
+  return `data:${mime};base64,${buf.toString('base64')}`;
+}
+
+const logoData = dataUri('/logo_transparent.png');
+const thumb1 = dataUri('/images/thumbnails/album1.jpg');
+const thumb2 = dataUri('/images/thumbnails/album2.jpg');
+const thumb3 = dataUri('/images/thumbnails/album3.jpg');
+
+interface Flipbook {
+  id: string;
+  title: string;
+  description: string;
+  thumbnail: string; // now data URI
+  type: 'images' | 'pdf';
+  pages?: string[];
+  pdfUrl?: string;
+}
+
+const flipbooks: Flipbook[] = [
   {
     id: 'flipbook1',
     title: 'Φρέσκα Προϊόντα',
     description: 'Τα καλύτερα φρέσκα φρούτα και λαχανικά',
-    thumbnail: '/images/thumbnails/album1.jpg',
-    type: 'images',
-    pages: [
-      '/images/flipbooks/album1/page1.jpg',
-      '/images/flipbooks/album1/page2.jpg',
-      '/images/flipbooks/album1/page3.jpg',
-      '/images/flipbooks/album1/page4.jpg',
-    ]
+    thumbnail: thumb1,
+    type: 'pdf',
+    pdfUrl: '/pdfs/catalog.pdf'
   },
   {
     id: 'flipbook2',
     title: 'Εβδομαδιαίες Προσφορές',
     description: 'Ανακαλύψτε τις απίστευτες προσφορές μας',
-    thumbnail: '/images/thumbnails/album2.jpg',
+    thumbnail: thumb2,
     type: 'pdf',
     pdfUrl: '/pdfs/catalog.pdf'
   },
@@ -30,7 +50,7 @@ const flipbooks = [
     id: 'flipbook3',
     title: 'Κατάλογος Προϊόντων',
     description: 'Όλα τα προϊόντα του σούπερ μάρκετ μας',
-    thumbnail: '/images/thumbnails/album3.jpg',
+    thumbnail: thumb3,
     type: 'pdf',
     pdfUrl: '/pdfs/portfolio.pdf'
   }
@@ -41,7 +61,7 @@ const flipbooks = [
   <main class="container">
     <header class="hero">
       <div class="logo-container">
-        <img src="/logo_transparent.png" alt="Ωραιόπολη Σούπερ Μάρκετ" class="logo" />
+        <img src={logoData} alt="Ωραιόπολη Σούπερ Μάρκετ" class="logo" data-inline="true" />
         <h1 class="site-title">Ωραιόπολη</h1>
       </div>
       <p class="tagline">Το Σούπερ Μάρκετ της Γειτονιάς Σας</p>
@@ -144,4 +164,3 @@ const flipbooks = [
     }
   }
 </style>
-

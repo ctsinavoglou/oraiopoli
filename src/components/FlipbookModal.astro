@@ -33,31 +33,31 @@ const { flipbooks } = Astro.props;
     <div class="modal-header">
       <h2 id="modal-title" class="modal-title"></h2>
       <div class="header-controls">
-        <button id="zoom-out" class="icon-btn" aria-label="Σμίκρυνση" title="Σμίκρυνση">
+        <button type="button" id="zoom-out" class="icon-btn" aria-label="Σμίκρυνση" title="Σμίκρυνση">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21l-4.35-4.35M8 11h6"></path>
           </svg>
         </button>
         <span id="zoom-level" class="zoom-level" title="Επίπεδο Μεγέθυνσης">100%</span>
-        <button id="zoom-in" class="icon-btn" aria-label="Μεγέθυνση" title="Μεγέθυνση">
+        <button type="button" id="zoom-in" class="icon-btn" aria-label="Μεγέθυνση" title="Μεγέθυνση">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21l-4.35-4.35M11 8v6M8 11h6"></path>
           </svg>
         </button>
-        <button id="zoom-reset" class="icon-btn" aria-label="Επαναφορά Μεγέθυνσης" title="Επαναφορά Μεγέθυνσης">
+        <button type="button" id="zoom-reset" class="icon-btn" aria-label="Επαναφορά Μεγέθυνσης" title="Επαναφορά Μεγέθυνσης">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="M21 21l-4.35-4.35M11 11h.01"></path>
           </svg>
         </button>
-        <button id="fullscreen-btn" class="icon-btn" aria-label="Πλήρης Οθόνη" title="Πλήρης Οθόνη">
+        <button type="button" id="fullscreen-btn" class="icon-btn" aria-label="Πλήρης Οθόνη" title="Πλήρης Οθόνη">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
           </svg>
         </button>
-        <button id="close-modal" class="icon-btn" aria-label="Κλείσιμο">
+        <button type="button" id="close-modal" class="icon-btn" aria-label="Κλείσιμο">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12"></path>
           </svg>
@@ -73,13 +73,13 @@ const { flipbooks } = Astro.props;
       </div>
 
       <div class="flipbook-controls">
-        <button id="first-page" class="control-btn secondary" aria-label="Πρώτη Σελίδα" title="Πρώτη Σελίδα">
+        <button type="button" id="first-page" class="control-btn secondary" aria-label="Πρώτη Σελίδα" title="Πρώτη Σελίδα">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
           </svg>
         </button>
 
-        <button id="prev-page" class="control-btn" aria-label="Προηγούμενη Σελίδα">
+        <button type="button" id="prev-page" class="control-btn" aria-label="Προηγούμενη Σελίδα">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M15 18l-6-6 6-6"></path>
           </svg>
@@ -90,14 +90,14 @@ const { flipbooks } = Astro.props;
           <span id="current-page">0</span> / <span id="total-pages">0</span>
         </div>
 
-        <button id="next-page" class="control-btn" aria-label="Επόμενη Σελίδα">
+        <button type="button" id="next-page" class="control-btn" aria-label="Επόμενη Σελίδα">
           <span>Επόμενη</span>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 18l6-6-6-6"></path>
           </svg>
         </button>
 
-        <button id="last-page" class="control-btn secondary" aria-label="Τελευταία Σελίδα" title="Τελευταία Σελίδα">
+        <button type="button" id="last-page" class="control-btn secondary" aria-label="Τελευταία Σελίδα" title="Τελευταία Σελίδα">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
           </svg>
@@ -443,6 +443,9 @@ const { flipbooks } = Astro.props;
       this.resizeHandler = null;
       this.lastTouchDistance = 0;
 
+      // Cache for loaded flipbook content (images/PDFs)
+      this.contentCache = {};
+
       this.modal = document.getElementById('flipbook-modal');
       this.modalTitle = document.getElementById('modal-title');
       this.flipbookEl = document.getElementById('flipbook');
@@ -472,22 +475,52 @@ const { flipbooks } = Astro.props;
       });
 
       // Close modal
-      this.closeBtn.addEventListener('click', () => this.close());
-      this.modal.querySelector('.modal-backdrop').addEventListener('click', () => this.close());
+      this.closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close();
+      });
+      this.modal.querySelector('.modal-backdrop').addEventListener('click', (e) => {
+        e.preventDefault();
+        this.close();
+      });
 
       // Navigation
-      this.prevBtn.addEventListener('click', () => this.prevPage());
-      this.nextBtn.addEventListener('click', () => this.nextPage());
-      this.firstBtn.addEventListener('click', () => this.firstPage());
-      this.lastBtn.addEventListener('click', () => this.lastPage());
+      this.prevBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.prevPage();
+      });
+      this.nextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.nextPage();
+      });
+      this.firstBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.firstPage();
+      });
+      this.lastBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.lastPage();
+      });
 
       // Zoom
-      this.zoomInBtn.addEventListener('click', () => this.zoomIn());
-      this.zoomOutBtn.addEventListener('click', () => this.zoomOut());
-      this.zoomResetBtn.addEventListener('click', () => this.resetZoom());
+      this.zoomInBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.zoomIn();
+      });
+      this.zoomOutBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.zoomOut();
+      });
+      this.zoomResetBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.resetZoom();
+      });
 
       // Fullscreen
-      this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+      this.fullscreenBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.toggleFullscreen();
+      });
 
       // Keyboard navigation
       document.addEventListener('keydown', (e) => {
@@ -499,6 +532,47 @@ const { flipbooks } = Astro.props;
         if (e.key === 'Home') this.firstPage();
         if (e.key === 'End') this.lastPage();
       });
+
+      // Block any navigation attempts when modal is active
+      document.addEventListener('click', (e) => {
+        if (!this.modal.classList.contains('active')) return;
+
+        // If click is on a link or button inside the modal content, prevent default
+        const target = e.target;
+        if (target && target.closest && target.closest('.modal-container')) {
+          const link = target.closest('a');
+          const button = target.closest('button:not([type="button"])');
+          if (link || button) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }
+      }, true);
+
+      // Prevent form submissions when modal is active
+      document.addEventListener('submit', (e) => {
+        if (this.modal.classList.contains('active')) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
+
+      // Prevent beforeunload when modal is active
+      window.addEventListener('beforeunload', (e) => {
+        if (this.modal.classList.contains('active')) {
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      }, true);
+
+      // Prevent popstate (back/forward navigation)
+      window.addEventListener('popstate', (e) => {
+        if (this.modal.classList.contains('active')) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      }, true);
 
       // Pan and zoom controls
       this.setupPanAndZoom();
@@ -730,20 +804,31 @@ const { flipbooks } = Astro.props;
       }
 
       try {
-        // Load content with timeout
-        const loadTimeout = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Loading timeout')), 30000) // 30 second timeout
-        );
+        // Check if content is already cached
+        if (this.contentCache[flipbookId]) {
+          console.log('Loading flipbook from cache:', flipbookId);
+          this.pages = this.contentCache[flipbookId];
+        } else {
+          console.log('Loading flipbook content for the first time:', flipbookId);
+          // Load content with timeout
+          const loadTimeout = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Loading timeout')), 30000) // 30 second timeout
+          );
 
-        const loadContent = async () => {
-          if (this.currentFlipbook.type === 'images') {
-            await this.loadImageFlipbook();
-          } else if (this.currentFlipbook.type === 'pdf') {
-            await this.loadPdfFlipbook();
-          }
-        };
+          const loadContent = async () => {
+            if (this.currentFlipbook.type === 'images') {
+              await this.loadImageFlipbook();
+            } else if (this.currentFlipbook.type === 'pdf') {
+              await this.loadPdfFlipbook();
+            }
+          };
 
-        await Promise.race([loadContent(), loadTimeout]);
+          await Promise.race([loadContent(), loadTimeout]);
+
+          // Cache the loaded content
+          this.contentCache[flipbookId] = this.pages;
+          console.log('Cached flipbook content:', flipbookId);
+        }
 
         // Wait for modal animation to complete and DOM to be ready
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -844,7 +929,8 @@ const { flipbooks } = Astro.props;
 
       // Clear all content and reset state
       this.flipbookEl.innerHTML = '';
-      this.pages = [];
+      // Don't clear this.pages - keep them cached
+      // this.pages = []; // REMOVED - keeping pages in memory for cache
       this.currentFlipbook = null;
       this.initRetryCount = 0;
       this.currentScale = 1;
@@ -952,6 +1038,16 @@ const { flipbooks } = Astro.props;
 
       console.log('Creating pages...', this.pages.length);
 
+      // Preload all images to ensure they're cached
+      const imageUrls = this.pages.filter(page => typeof page === 'string');
+      if (imageUrls.length > 0) {
+        console.log('Preloading images...');
+        imageUrls.forEach(url => {
+          const preloadImg = new Image();
+          preloadImg.src = url;
+        });
+      }
+
       // Create pages
       this.pages.forEach((page, index) => {
         const pageDiv = document.createElement('div');
@@ -959,11 +1055,21 @@ const { flipbooks } = Astro.props;
         pageDiv.setAttribute('data-density', 'hard');
 
         if (typeof page === 'string') {
-          // Image page
-          pageDiv.innerHTML = `<img src="${page}" alt="Page ${index + 1}" loading="lazy" />`;
+          // Image page - NO lazy loading to prevent reload during flips
+          const img = document.createElement('img');
+          img.src = page;
+          img.alt = `Page ${index + 1}`;
+          img.draggable = false;
+          img.style.pointerEvents = 'none'; // Prevent any interaction
+          pageDiv.appendChild(img);
         } else if (page?.type === 'pdf-rendered') {
           // Actual PDF page rendered as image
-          pageDiv.innerHTML = `<img src="${page.dataUrl}" alt="Page ${page.pageNum}" />`;
+          const img = document.createElement('img');
+          img.src = page.dataUrl;
+          img.alt = `Page ${page.pageNum}`;
+          img.draggable = false;
+          img.style.pointerEvents = 'none';
+          pageDiv.appendChild(img);
         } else if (page?.type === 'pdf-error') {
           // PDF rendering error
           pageDiv.innerHTML = `
@@ -1108,6 +1214,12 @@ const { flipbooks } = Astro.props;
 
       // Listen to page flip events
       this.pageFlip.on('flip', (e) => {
+        if (e && e.preventDefault) {
+          e.preventDefault();
+        }
+        if (e && e.stopPropagation) {
+          e.stopPropagation();
+        }
         this.updatePageIndicator();
       });
 
@@ -1166,8 +1278,8 @@ const { flipbooks } = Astro.props;
       // Update reference
       this.flipbookEl = newFlipbook;
 
-      // Clear pages array
-      this.pages = [];
+      // Don't clear pages array - keep them cached
+      // this.pages = []; // REMOVED - keeping pages in memory for cache
 
       console.log('Flipbook root recreated');
     }
