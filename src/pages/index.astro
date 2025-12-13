@@ -37,16 +37,24 @@ const flipbooks: Flipbook[] = [
     description: 'Ανακάλυψε τις σταθερά χαμηλές τιμές σε αναψυκτικά και ποτά στο νέο μας κατάλογο!',
     thumbnail: thumb1,
     type: 'pdf',
-    pdfUrl: '/pdfs/catalog.pdf'
+    pdfUrl: '/pdfs/anapsuktika.pdf'
   },
   {
     id: 'flipbook2',
-    title: 'Αναψυκτικά & Ποτά σε τιμές Ωραιόπολη',
-    description: 'Ανακάλυψε τις σταθερά χαμηλές τιμές σε αναψυκτικά και ποτά στο νέο μας κατάλογο!',
-    thumbnail: thumb1,
+    title: 'Είδη Σπιτιού σε τιμές Ωραιόπολη',
+    description: 'Ανακάλυψε τις σταθερά χαμηλές τιμές σε είδη σπιτιού στο νέο μας κατάλογο!',
+    thumbnail: thumb2,
     type: 'pdf',
-    pdfUrl: '/pdfs/catalog.pdf'
-  }
+    pdfUrl: '/pdfs/eidi_spitiou.pdf'
+  },
+  {
+    id: 'flipbook3',
+    title: 'Προσωπική Φροντίδα σε τιμές Ωραιόπολη',
+    description: 'Ανακάλυψε τις σταθερά χαμηλές τιμές σε προϊόντα προσωπικής φροντίδας στο νέο μας κατάλογο!',
+    thumbnail: thumb3,
+    type: 'pdf',
+    pdfUrl: '/pdfs/prosopikh_frontida.pdf'
+  },
 ];
 ---
 
@@ -134,7 +142,7 @@ const flipbooks: Flipbook[] = [
 
   .flipbooks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 2.5rem;
     margin-bottom: 4rem;
   }
