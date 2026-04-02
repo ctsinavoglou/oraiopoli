@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/customer")
@@ -32,6 +33,7 @@ public class CustomerController {
     private final CartService cartService;
     private final OrderService orderService;
     private final PromotionService promotionService;
+    private final FavoriteService favoriteService;
 
     // Profile
     @GetMapping("/profile")
@@ -145,6 +147,38 @@ public class CustomerController {
             @AuthenticationPrincipal User user,
             @PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(orderService.getCustomerOrderById(user.getId(), id)));
+    }
+
+    // Favorites
+    @GetMapping("/favorites")
+    @Operation(summary = "Get favorite products")
+    public ResponseEntity<ApiResponse<List<ProductResponse>>> getFavorites(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(ApiResponse.success(favoriteService.getFavorites(user)));
+    }
+
+    @GetMapping("/favorites/ids")
+    @Operation(summary = "Get favorite product IDs")
+    public ResponseEntity<ApiResponse<Set<Long>>> getFavoriteIds(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(ApiResponse.success(favoriteService.getFavoriteProductIds(user)));
+    }
+
+    @PostMapping("/favorites/{productId}")
+    @Operation(summary = "Add product to favorites")
+    public ResponseEntity<ApiResponse<Void>> addFavorite(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long productId) {
+        favoriteService.addFavorite(user, productId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Added to favorites", null));
+    }
+
+    @DeleteMapping("/favorites/{productId}")
+    @Operation(summary = "Remove product from favorites")
+    public ResponseEntity<ApiResponse<Void>> removeFavorite(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long productId) {
+        favoriteService.removeFavorite(user, productId);
+        return ResponseEntity.ok(ApiResponse.success("Removed from favorites", null));
     }
 
     // Promo code validation

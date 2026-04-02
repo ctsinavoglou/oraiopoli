@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/favorite_provider.dart';
 import '../../widgets/product_card.dart';
 
 class ProductListScreen extends ConsumerWidget {
@@ -16,6 +17,7 @@ class ProductListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final products = ref.watch(categoryProductsProvider(categoryId));
+    final favoriteIds = ref.watch(favoriteIdsProvider).valueOrNull ?? {};
 
     return Scaffold(
       appBar: AppBar(title: Text(title)),
@@ -31,6 +33,8 @@ class ProductListScreen extends ConsumerWidget {
                 itemBuilder: (_, i) => ProductCard(
                   product: list[i],
                   onTap: () => context.push('/products/${list[i].slug}'),
+                  isFavorite: favoriteIds.contains(list[i].id),
+                  onToggleFavorite: () => ref.read(favoriteIdsProvider.notifier).toggleFavorite(list[i].id),
                   onAddToCart: () async {
                     try {
                       await ref.read(cartProvider.notifier).addToCart(list[i].id);

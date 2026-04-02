@@ -12,6 +12,7 @@ import '../../screens/categories/category_detail_screen.dart';
 import '../../screens/products/product_list_screen.dart';
 import '../../screens/products/product_detail_screen.dart';
 import '../../screens/cart/cart_screen.dart';
+import '../../screens/favorites/favorites_screen.dart';
 import '../../screens/checkout/checkout_screen.dart';
 import '../../screens/orders/orders_screen.dart';
 import '../../screens/orders/order_detail_screen.dart';
@@ -40,6 +41,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(path: '/', builder: (_, __) => const HomeScreen()),
           GoRoute(path: '/categories', builder: (_, __) => const CategoriesScreen()),
+          GoRoute(path: '/favorites', builder: (_, __) => const FavoritesScreen()),
           GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),
           GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
           GoRoute(

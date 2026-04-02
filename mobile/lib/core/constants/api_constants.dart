@@ -30,5 +30,7 @@ class ApiConstants {
   static const String customerCheckout = '/api/customer/checkout';
   static const String customerOrders = '/api/customer/orders';
   static const String customerValidatePromo = '/api/customer/validate-promo';
+  static const String customerFavorites = '/api/customer/favorites';
+  static const String customerFavoriteIds = '/api/customer/favorites/ids';
 }
 

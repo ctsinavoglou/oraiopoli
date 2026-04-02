@@ -8,6 +8,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/models.dart' as models;
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/favorite_provider.dart';
 import '../../widgets/product_card.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -57,6 +58,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final banners = ref.watch(bannersProvider);
     final featured = ref.watch(featuredProductsProvider);
     final categories = ref.watch(categoriesProvider);
+    final favoriteIds = ref.watch(favoriteIdsProvider).valueOrNull ?? {};
 
     return Scaffold(
       appBar: AppBar(
@@ -220,6 +222,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       itemBuilder: (_, i) => ProductCard(
                         product: list[i],
                         onTap: () => context.push('/products/${list[i].slug}'),
+                        isFavorite: favoriteIds.contains(list[i].id),
+                        onToggleFavorite: () => ref.read(favoriteIdsProvider.notifier).toggleFavorite(list[i].id),
                         onAddToCart: () async {
                           try {
                             await ref.read(cartProvider.notifier).addToCart(list[i].id);
@@ -299,6 +303,7 @@ class _ProductSearchDelegate extends SearchDelegate<String> {
     Future(() => ref.read(searchQueryProvider.notifier).state = currentQuery);
     return Consumer(builder: (context, ref, _) {
       final results = ref.watch(searchResultsProvider);
+      final favIds = ref.watch(favoriteIdsProvider).valueOrNull ?? {};
       return results.when(
         data: (list) => list.isEmpty
             ? const Center(child: Text('No results found'))
@@ -306,10 +311,15 @@ class _ProductSearchDelegate extends SearchDelegate<String> {
                 padding: const EdgeInsets.all(16),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 0.68, crossAxisSpacing: 12, mainAxisSpacing: 12),
                 itemCount: list.length,
-                itemBuilder: (_, i) => ProductCard(product: list[i], onTap: () {
-                  close(context, '');
-                  context.push('/products/${list[i].slug}');
-                }),
+                itemBuilder: (_, i) => ProductCard(
+                  product: list[i],
+                  onTap: () {
+                    close(context, '');
+                    context.push('/products/${list[i].slug}');
+                  },
+                  isFavorite: favIds.contains(list[i].id),
+                  onToggleFavorite: () => ref.read(favoriteIdsProvider.notifier).toggleFavorite(list[i].id),
+                ),
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => const Center(child: Text('Search failed')),

@@ -7,6 +7,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/models.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/favorite_provider.dart';
 import '../../widgets/product_card.dart';
 
 /// Shows a category detail: subcategories (if any) at the top,
@@ -21,6 +22,7 @@ class CategoryDetailScreen extends ConsumerWidget {
     // Resolve category from the already-loaded tree
     final categoriesAsync = ref.watch(categoriesProvider);
     final products = ref.watch(categoryProductsProvider(categoryId));
+    final favoriteIds = ref.watch(favoriteIdsProvider).valueOrNull ?? {};
 
     return categoriesAsync.when(
       data: (rootCategories) {
@@ -219,6 +221,8 @@ class CategoryDetailScreen extends ConsumerWidget {
                               product: list[i],
                               onTap: () =>
                                   context.push('/products/${list[i].slug}'),
+                              isFavorite: favoriteIds.contains(list[i].id),
+                              onToggleFavorite: () => ref.read(favoriteIdsProvider.notifier).toggleFavorite(list[i].id),
                               onAddToCart: () async {
                                 try {
                                   await ref

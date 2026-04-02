@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/favorite_provider.dart';
 
 class ProductDetailScreen extends ConsumerWidget {
   final String slug;
@@ -13,9 +14,24 @@ class ProductDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final productAsync = ref.watch(productDetailProvider(slug));
+    final favoriteIds = ref.watch(favoriteIdsProvider).valueOrNull ?? {};
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Product Details')),
+      appBar: AppBar(
+        title: const Text('Product Details'),
+        actions: [
+          productAsync.whenOrNull(
+            data: (product) {
+              final isFav = favoriteIds.contains(product.id);
+              return IconButton(
+                icon: Icon(isFav ? Icons.favorite : Icons.favorite_border,
+                    color: isFav ? AppColors.accent : null),
+                onPressed: () => ref.read(favoriteIdsProvider.notifier).toggleFavorite(product.id),
+              );
+            },
+          ) ?? const SizedBox.shrink(),
+        ],
+      ),
       body: productAsync.when(
         data: (product) => SingleChildScrollView(
           child: Column(

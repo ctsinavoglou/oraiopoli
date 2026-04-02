@@ -7,8 +7,10 @@ class ProductCard extends StatefulWidget {
   final Product product;
   final VoidCallback onTap;
   final Future<void> Function()? onAddToCart;
+  final bool isFavorite;
+  final VoidCallback? onToggleFavorite;
 
-  const ProductCard({super.key, required this.product, required this.onTap, this.onAddToCart});
+  const ProductCard({super.key, required this.product, required this.onTap, this.onAddToCart, this.isFavorite = false, this.onToggleFavorite});
 
   @override
   State<ProductCard> createState() => _ProductCardState();
@@ -69,6 +71,26 @@ class _ProductCardState extends State<ProductCard> {
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(6)),
                           child: const Text('Out of Stock', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                    ),
+                  if (widget.onToggleFavorite != null)
+                    Positioned(
+                      top: 6, right: 6,
+                      child: GestureDetector(
+                        onTap: widget.onToggleFavorite,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black12)],
+                          ),
+                          child: Icon(
+                            widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+                            size: 18,
+                            color: widget.isFavorite ? AppColors.accent : AppColors.textHint,
+                          ),
                         ),
                       ),
                     ),
