@@ -19,14 +19,15 @@ const emptyForm = {
 export default function ProductsPage() {
   const qc = useQueryClient();
   const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [uploading, setUploading] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['products', page],
-    queryFn: () => getProducts({ page, size: 20 }).then((r) => r.data.data),
+    queryKey: ['products', page, search],
+    queryFn: () => getProducts({ page, size: 20, search: search || undefined }).then((r) => r.data.data),
   });
 
   const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: () => getCategories().then((r) => r.data.data) });
@@ -76,9 +77,17 @@ export default function ProductsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
         <h1 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Products</h1>
-        <Button onClick={openCreate}><Plus size={16} /> Add Product</Button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <Input
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+            style={{ width: 220 }}
+          />
+          <Button onClick={openCreate}><Plus size={16} /> Add Product</Button>
+        </div>
       </div>
 
       {isLoading ? <Spinner /> : (
@@ -131,7 +140,7 @@ export default function ProductsPage() {
         </div>
       )}
 
-      <Modal isOpen={modalOpen} onClose={closeModal} title={editing ? 'Edit Product' : 'Add Product'} width={640}>
+      <Modal isOpen={modalOpen} onClose={closeModal} title={editing ? 'Edit Product' : 'Add Product'} width={750}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <Input label="Name *" value={form.name} onChange={(e) => set('name', e.target.value)} />
           <Input label="SKU *" value={form.sku} onChange={(e) => set('sku', e.target.value)} />

@@ -95,6 +95,15 @@ public class ProductService {
                 .map(ProductResponse::fromEntity);
     }
 
+    public Page<ProductResponse> getAllProducts(String search, Pageable pageable) {
+        if (search != null && !search.isBlank()) {
+            return productRepository.searchAllProducts(search, pageable)
+                    .map(ProductResponse::fromEntity);
+        }
+        return productRepository.findAll(pageable)
+                .map(ProductResponse::fromEntity);
+    }
+
     @Transactional
     public ProductResponse createProduct(ProductRequest request) {
         String slug = generateSlug(request.getName());

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getBrands, createBrand, updateBrand, deleteBrand } from '../../api/admin';
+import { getBrandsPaged, createBrand, updateBrand, deleteBrand } from '../../api/admin';
 import type { Brand } from '../../types';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Modal from '../../components/ui/Modal';
+import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
@@ -14,22 +15,24 @@ export default function BrandsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Brand | null>(null);
   const [form, setForm] = useState({ name: '', logoUrl: '', description: '', active: true });
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
 
-  const { data: brands, isLoading } = useQuery({
-    queryKey: ['brands'],
-    queryFn: () => getBrands().then((r) => r.data.data),
+  const { data, isLoading } = useQuery({
+    queryKey: ['brands-paged', page, search],
+    queryFn: () => getBrandsPaged({ page, size: 20, search: search || undefined }).then((r) => r.data.data),
   });
 
   const saveMut = useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
-      editing ? updateBrand(editing.id, data) : createBrand(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['brands'] }); toast.success(editing ? 'Brand updated' : 'Brand created'); closeModal(); },
+    mutationFn: (d: Record<string, unknown>) =>
+      editing ? updateBrand(editing.id, d) : createBrand(d),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['brands-paged'] }); qc.invalidateQueries({ queryKey: ['brands'] }); toast.success(editing ? 'Brand updated' : 'Brand created'); closeModal(); },
     onError: () => toast.error('Failed to save brand'),
   });
 
   const delMut = useMutation({
     mutationFn: deleteBrand,
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['brands'] }); toast.success('Brand deleted'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['brands-paged'] }); qc.invalidateQueries({ queryKey: ['brands'] }); toast.success('Brand deleted'); },
   });
 
   const openCreate = () => { setEditing(null); setForm({ name: '', logoUrl: '', description: '', active: true }); setModalOpen(true); };
@@ -43,9 +46,17 @@ export default function BrandsPage() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
         <h1 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Brands</h1>
-        <Button onClick={openCreate}><Plus size={16} /> Add Brand</Button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <Input
+            placeholder="Search brands..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+            style={{ width: 220 }}
+          />
+          <Button onClick={openCreate}><Plus size={16} /> Add Brand</Button>
+        </div>
       </div>
 
       {isLoading ? <Spinner /> : (
@@ -58,7 +69,7 @@ export default function BrandsPage() {
               </tr>
             </thead>
             <tbody>
-              {brands?.map((b) => (
+              {data?.content.map((b) => (
                 <tr key={b.id} style={{ borderBottom: '1px solid var(--gray-100)' }}>
                   <td style={td}>{b.id}</td>
                   <td style={td}><div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -73,8 +84,12 @@ export default function BrandsPage() {
                   </td>
                 </tr>
               ))}
+              {data?.content.length === 0 && (
+                <tr><td colSpan={5} style={{ ...td, textAlign: 'center', color: 'var(--gray-400)' }}>No brands found</td></tr>
+              )}
             </tbody>
           </table>
+          {data && <Pagination page={page} totalPages={data.totalPages} onPageChange={setPage} />}
         </div>
       )}
 

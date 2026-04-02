@@ -22,6 +22,9 @@ export const toggleUserStatus = (id: number) =>
 export const getCategories = () =>
   api.get<ApiResponse<Category[]>>('/api/admin/categories');
 
+export const getCategoriesPaged = (params: Record<string, unknown>) =>
+  api.get<ApiResponse<Page<Category>>>('/api/admin/categories/paged', { params });
+
 export const getCategoryById = (id: number) =>
   api.get<ApiResponse<Category>>(`/api/admin/categories/${id}`);
 
@@ -37,6 +40,9 @@ export const deleteCategory = (id: number) =>
 // Brands
 export const getBrands = () =>
   api.get<ApiResponse<Brand[]>>('/api/admin/brands');
+
+export const getBrandsPaged = (params: Record<string, unknown>) =>
+  api.get<ApiResponse<Page<Brand>>>('/api/admin/brands/paged', { params });
 
 export const getBrandById = (id: number) =>
   api.get<ApiResponse<Brand>>(`/api/admin/brands/${id}`);

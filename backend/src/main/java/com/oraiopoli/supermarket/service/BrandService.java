@@ -7,6 +7,8 @@ import com.oraiopoli.supermarket.exception.BadRequestException;
 import com.oraiopoli.supermarket.exception.ResourceNotFoundException;
 import com.oraiopoli.supermarket.repository.BrandRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,16 @@ public class BrandService {
         return brandRepository.findAll().stream()
                 .map(BrandResponse::fromEntity)
                 .toList();
+    }
+
+    public Page<BrandResponse> getAllBrandsPaged(String search, Pageable pageable) {
+        Page<Brand> page;
+        if (search != null && !search.isBlank()) {
+            page = brandRepository.searchByName(search, pageable);
+        } else {
+            page = brandRepository.findAll(pageable);
+        }
+        return page.map(BrandResponse::fromEntity);
     }
 
     public BrandResponse getBrandById(Long id) {

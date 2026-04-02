@@ -91,6 +91,14 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(categoryService.getAllCategories()));
     }
 
+    @GetMapping("/categories/paged")
+    @Operation(summary = "Get categories with search and pagination")
+    public ResponseEntity<ApiResponse<Page<CategoryResponse>>> getCategoriesPaged(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(categoryService.getAllCategoriesPaged(search, pageable)));
+    }
+
     @GetMapping("/categories/{id}")
     @Operation(summary = "Get category by ID")
     public ResponseEntity<ApiResponse<CategoryResponse>> getCategory(@PathVariable Long id) {
@@ -126,6 +134,14 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(brandService.getAllBrands()));
     }
 
+    @GetMapping("/brands/paged")
+    @Operation(summary = "Get brands with search and pagination")
+    public ResponseEntity<ApiResponse<Page<BrandResponse>>> getBrandsPaged(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(brandService.getAllBrandsPaged(search, pageable)));
+    }
+
     @GetMapping("/brands/{id}")
     @Operation(summary = "Get brand by ID")
     public ResponseEntity<ApiResponse<BrandResponse>> getBrand(@PathVariable Long id) {
@@ -158,8 +174,9 @@ public class AdminController {
     @GetMapping("/products")
     @Operation(summary = "Get all products with pagination")
     public ResponseEntity<ApiResponse<Page<ProductResponse>>> getProducts(
+            @RequestParam(required = false) String search,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(productService.getAllProducts(pageable)));
+        return ResponseEntity.ok(ApiResponse.success(productService.getAllProducts(search, pageable)));
     }
 
     @GetMapping("/products/{id}")

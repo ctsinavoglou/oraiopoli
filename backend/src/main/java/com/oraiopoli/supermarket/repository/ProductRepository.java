@@ -30,6 +30,11 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
             "OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :query, '%')))")
     Page<Product> searchProducts(@Param("query") String query, Pageable pageable);
 
+    @Query("SELECT p FROM Product p WHERE " +
+            "LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
+            "OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :query, '%'))")
+    Page<Product> searchAllProducts(@Param("query") String query, Pageable pageable);
+
     long countByActiveTrue();
 
     @Query("SELECT p FROM Product p JOIN p.inventory i WHERE i.quantity <= i.lowStockThreshold AND p.active = true")

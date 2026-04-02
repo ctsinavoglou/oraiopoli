@@ -11,6 +11,21 @@ VALUES ('Super Admin', 'admin@oraiopoli.com', '+30 000 000 0000',
         'SUPER_ADMIN', true, NOW(), NOW())
 ON CONFLICT (email) DO NOTHING;
 
+-- password: 123456
+INSERT INTO users (full_name, email, phone, password, role, enabled, created_at, updated_at)
+VALUES ('Chris Tsi', 'tsi@oraiopoli.com', '+30 000 000 0000',
+        '$2b$10$L/1hzYvr1kdePpIodJJ/N.olKKZJqXP6RBiybW6ZRpgkyhrf.EUpy',
+        'CUSTOMER', true, NOW(), NOW())
+ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;
+
+-- ── Address for Chris Tsi ──
+INSERT INTO addresses (label, address_line, city, postal_code, country, is_default, user_id, created_at, updated_at)
+SELECT 'Σπίτι', 'Ωραιόπολη 12', 'Καλλιθέα', '17676', 'Ελλάδα', true, u.id, NOW(), NOW()
+FROM users u WHERE u.email = 'tsi@oraiopoli.com'
+  AND NOT EXISTS (SELECT 1 FROM addresses a WHERE a.user_id = u.id AND a.label = 'Σπίτι');
+
+
+/*
 -- ── Brands ──
 INSERT INTO brands (name, slug, description, active, created_at, updated_at) VALUES
     ('ΔΕΛΤΑ',        'delta',        'Greek dairy & juice company',           true, NOW(), NOW()),
@@ -128,7 +143,7 @@ FROM (VALUES
     ('PAN-003',  50, 10)
 ) AS stock(sku, qty, threshold)
 JOIN products p ON p.sku = stock.sku
-WHERE NOT EXISTS (SELECT 1 FROM inventory i WHERE i.product_id = p.id);
+WHERE NOT EXISTS (SELECT 1 FROM inventory i WHERE i.product_id = p.id);*/
 
 -- ── Banners ──
 INSERT INTO banners (title, subtitle, image_url, link_url, display_order, active, start_date, end_date, created_at, updated_at)
