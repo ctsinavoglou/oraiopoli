@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: oraiopoli-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: oraiopoli
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - oraiopoli-data:/var/lib/postgresql/data
+      - ./backend/src/main/resources/data.sql:/docker-entrypoint-initdb.d/seed.sql:ro
+
+volumes:
+  oraiopoli-data:
+
