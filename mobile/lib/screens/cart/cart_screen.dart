@@ -93,7 +93,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                 if (context.mounted) _showError(context, e);
                               }
                             }),
-                            Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.w600))),
+                            Padding(padding: const EdgeInsets.symmetric(horizontal: 10),
+                              child: Text(item.totalWeightLabel ?? '${item.quantity}', style: const TextStyle(fontWeight: FontWeight.w600))),
                             _qtyBtn(
                               Icons.add,
                               item.quantity >= item.stockQuantity

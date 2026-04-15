@@ -34,6 +34,9 @@ public class ProductRequest {
 
     private String unit;
 
+    private BigDecimal weightQuantity;
+    private String weightUnit;
+
     private boolean active = true;
     private boolean featured = false;
 

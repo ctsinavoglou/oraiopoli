@@ -52,7 +52,9 @@ class OrderDetailScreen extends ConsumerWidget {
               ...order.items.map((item) => Card(
                 child: ListTile(
                   title: Text(item.productName),
-                  subtitle: Text('€${item.unitPrice.toStringAsFixed(2)} x ${item.quantity}'),
+                  subtitle: Text(item.isWeighed
+                    ? '€${item.unitPrice.toStringAsFixed(2)} x ${item.totalWeightLabel}'
+                    : '€${item.unitPrice.toStringAsFixed(2)} x ${item.quantity}'),
                   trailing: Text('€${item.subtotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w700)),
                 ),
               )),

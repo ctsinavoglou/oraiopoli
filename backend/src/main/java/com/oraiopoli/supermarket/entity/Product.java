@@ -56,7 +56,14 @@ public class Product extends BaseEntity {
     @Column(name = "get_quantity")
     private Integer getQuantity;  // e.g., 1 for "1+1" or "2+1"
 
-    private String unit; // e.g., "kg", "piece", "liter"
+    @Enumerated(EnumType.STRING)
+    private UnitType unit;
+
+    @Column(name = "weight_quantity", precision = 10, scale = 2)
+    private BigDecimal weightQuantity;
+
+    @Column(name = "weight_unit")
+    private String weightUnit; // gr, ml, cm, pieces
 
     @Column(nullable = false)
     @Builder.Default

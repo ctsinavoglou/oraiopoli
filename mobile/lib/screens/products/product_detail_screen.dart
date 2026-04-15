@@ -58,6 +58,10 @@ class ProductDetailScreen extends ConsumerWidget {
                         child: Text(product.categoryName!, style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
                       ),
                     Text(product.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+                    if (product.weightLabel != null) ...[
+                      const SizedBox(height: 4),
+                      Text(product.weightLabel!, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                    ],
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -80,12 +84,14 @@ class ProductDetailScreen extends ConsumerWidget {
                         ] else
                           Text('€${product.price.toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primary)),
-                        if (product.unit != null) ...[
-                          const SizedBox(width: 6),
-                          Text('/ ${product.unit}', style: const TextStyle(color: AppColors.textSecondary)),
-                        ],
                       ],
                     ),
+                    // Per-unit price line
+                    if (product.pricePerUnitText != null) ...[
+                      const SizedBox(height: 4),
+                      Text(product.pricePerUnitText!,
+                        style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                    ],
                     const SizedBox(height: 12),
                     Row(
                       children: [

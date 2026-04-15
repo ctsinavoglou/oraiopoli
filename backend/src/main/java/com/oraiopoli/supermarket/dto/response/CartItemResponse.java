@@ -2,6 +2,7 @@ package com.oraiopoli.supermarket.dto.response;
 
 import com.oraiopoli.supermarket.entity.CartItem;
 import com.oraiopoli.supermarket.entity.Product;
+import com.oraiopoli.supermarket.entity.UnitType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +29,9 @@ public class CartItemResponse {
     private int stockQuantity;
     private Integer buyQuantity;
     private Integer getQuantity;
+    private String unit;
+    private BigDecimal weightQuantity;
+    private String weightUnit;
 
     private static boolean isWithinDateRange(Product product) {
         LocalDateTime now = LocalDateTime.now();
@@ -91,6 +95,9 @@ public class CartItemResponse {
                 .stockQuantity(stock)
                 .buyQuantity(buyQty)
                 .getQuantity(getQty)
+                .unit(product.getUnit() != null ? product.getUnit().name() : null)
+                .weightQuantity(product.getUnit() == UnitType.WEIGHED ? product.getWeightQuantity() : null)
+                .weightUnit(product.getUnit() == UnitType.WEIGHED ? product.getWeightUnit() : null)
                 .build();
     }
 }

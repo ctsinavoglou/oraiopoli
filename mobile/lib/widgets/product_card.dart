@@ -118,6 +118,8 @@ class _ProductCardState extends State<ProductCard> {
                   children: [
                     Text(product.name, maxLines: 2, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                    if (product.weightLabel != null)
+                      Text(product.weightLabel!, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                     const Spacer(),
                     Row(
                       children: [
@@ -158,6 +160,12 @@ class _ProductCardState extends State<ProductCard> {
                           ),
                       ],
                     ),
+                    if (product.pricePerUnitText != null) ...[
+                      const SizedBox(height: 2),
+                      Text(product.pricePerUnitText!,
+                        style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ],
                   ],
                 ),
               ),

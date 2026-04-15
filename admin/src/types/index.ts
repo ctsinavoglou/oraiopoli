@@ -56,6 +56,11 @@ export interface Product {
   buyQuantity?: number;
   getQuantity?: number;
   unit?: string;
+  weightQuantity?: number;
+  weightUnit?: string;
+  pricePerUnit?: number;
+  discountPricePerUnit?: number;
+  pricePerUnitLabel?: string;
   active: boolean;
   featured: boolean;
   thumbnailUrl?: string;

@@ -41,5 +41,13 @@ public class OrderItem extends BaseEntity {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
+
+    private String unit;
+
+    @Column(name = "weight_quantity", precision = 10, scale = 2)
+    private BigDecimal weightQuantity;
+
+    @Column(name = "weight_unit")
+    private String weightUnit;
 }
 

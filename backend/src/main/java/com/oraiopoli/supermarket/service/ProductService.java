@@ -134,7 +134,9 @@ public class ProductService {
                 .discountEndDate(request.getDiscountEndDate())
                 .buyQuantity(request.getBuyQuantity())
                 .getQuantity(request.getGetQuantity())
-                .unit(request.getUnit())
+                .unit(parseUnit(request.getUnit()))
+                .weightQuantity(request.getWeightQuantity())
+                .weightUnit(request.getWeightUnit())
                 .active(request.isActive())
                 .featured(request.isFeatured())
                 .thumbnailUrl(request.getThumbnailUrl())
@@ -143,6 +145,7 @@ public class ProductService {
                 .build();
 
         validateOfferExclusivity(product);
+        validateWeighedFields(product);
 
         product = productRepository.save(product);
 
@@ -195,7 +198,9 @@ public class ProductService {
         product.setDiscountEndDate(request.getDiscountEndDate());
         product.setBuyQuantity(request.getBuyQuantity());
         product.setGetQuantity(request.getGetQuantity());
-        product.setUnit(request.getUnit());
+        product.setUnit(parseUnit(request.getUnit()));
+        product.setWeightQuantity(request.getWeightQuantity());
+        product.setWeightUnit(request.getWeightUnit());
         product.setActive(request.isActive());
         product.setFeatured(request.isFeatured());
         product.setThumbnailUrl(request.getThumbnailUrl());
@@ -203,6 +208,7 @@ public class ProductService {
         product.setBrand(brand);
 
         validateOfferExclusivity(product);
+        validateWeighedFields(product);
 
         product = productRepository.save(product);
 
@@ -255,6 +261,27 @@ public class ProductService {
                 && product.getBuyQuantity() >= 1 && product.getGetQuantity() >= 1;
         if (hasDiscount && hasOffer) {
             throw new BadRequestException("A product cannot have both a discount price and a buy+get offer. Please choose one.");
+        }
+    }
+
+    private void validateWeighedFields(Product product) {
+        if (product.getUnit() == UnitType.WEIGHED) {
+            if (product.getWeightQuantity() == null || product.getWeightUnit() == null || product.getWeightUnit().isBlank()) {
+                throw new BadRequestException("Weighed products require weightQuantity and weightUnit.");
+            }
+        } else {
+            // Clear weight fields for non-weighed products
+            product.setWeightQuantity(null);
+            product.setWeightUnit(null);
+        }
+    }
+
+    private UnitType parseUnit(String unit) {
+        if (unit == null || unit.isBlank()) return null;
+        try {
+            return UnitType.valueOf(unit.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid unit type: " + unit + ". Allowed: KG, METERS, LITERS, PIECES, WEIGHED");
         }
     }
 

@@ -84,6 +84,11 @@ class Product {
   final int? buyQuantity;
   final int? getQuantity;
   final String? unit;
+  final double? weightQuantity;
+  final String? weightUnit;
+  final double? pricePerUnit;
+  final double? discountPricePerUnit;
+  final String? pricePerUnitLabel;
   final bool active;
   final bool featured;
   final String? thumbnailUrl;
@@ -97,6 +102,8 @@ class Product {
   Product({required this.id, required this.name, required this.slug, this.sku,
     this.description, required this.price, this.discountPrice,
     this.buyQuantity, this.getQuantity, this.unit,
+    this.weightQuantity, this.weightUnit,
+    this.pricePerUnit, this.discountPricePerUnit, this.pricePerUnitLabel,
     required this.active, required this.featured, this.thumbnailUrl,
     this.categoryName, this.categoryId, this.brandName,
     required this.stockQuantity, required this.inStock, this.images});
@@ -108,7 +115,13 @@ class Product {
     discountPrice: json['discountPrice'] != null ? (json['discountPrice'] as num).toDouble() : null,
     buyQuantity: json['buyQuantity'],
     getQuantity: json['getQuantity'],
-    unit: json['unit'], active: json['active'] ?? true, featured: json['featured'] ?? false,
+    unit: json['unit'],
+    weightQuantity: json['weightQuantity'] != null ? (json['weightQuantity'] as num).toDouble() : null,
+    weightUnit: json['weightUnit'],
+    pricePerUnit: json['pricePerUnit'] != null ? (json['pricePerUnit'] as num).toDouble() : null,
+    discountPricePerUnit: json['discountPricePerUnit'] != null ? (json['discountPricePerUnit'] as num).toDouble() : null,
+    pricePerUnitLabel: json['pricePerUnitLabel'],
+    active: json['active'] ?? true, featured: json['featured'] ?? false,
     thumbnailUrl: json['thumbnailUrl'], categoryName: json['categoryName'],
     categoryId: json['categoryId'], brandName: json['brandName'],
     stockQuantity: json['stockQuantity'] ?? 0, inStock: json['inStock'] ?? false,
@@ -121,6 +134,32 @@ class Product {
   bool get hasDiscount => discountPrice != null && discountPrice! < price;
   bool get hasOffer => buyQuantity != null && getQuantity != null && buyQuantity! >= 1 && getQuantity! >= 1;
   String get offerLabel => '${buyQuantity}+${getQuantity}';
+  bool get isWeighed => unit == 'WEIGHED' && weightQuantity != null && weightUnit != null;
+
+  /// e.g. "397gr" for the product label
+  String? get weightLabel {
+    if (!isWeighed) return null;
+    final qty = weightQuantity!;
+    final qtyStr = qty == qty.roundToDouble() ? qty.round().toString() : qty.toStringAsFixed(1);
+    return '$qtyStr${weightUnit!}';
+  }
+
+  /// Builds the per-unit price text for display.
+  /// e.g. "397gr · €4.81 from €5.67/kg" or "€3.00 from €5.00/kg" or "€5.00/kg"
+  String? get pricePerUnitText {
+    if (pricePerUnit == null) return null;
+    final label = pricePerUnitLabel ?? '';
+    final prefix = isWeighed && weightLabel != null ? '${weightLabel!} · ' : '';
+
+    if (hasOffer) {
+      // For offers: just show the original price per unit
+      return '$prefix€${pricePerUnit!.toStringAsFixed(2)}$label';
+    }
+    if (hasDiscount && discountPricePerUnit != null) {
+      return '$prefix€${discountPricePerUnit!.toStringAsFixed(2)} from €${pricePerUnit!.toStringAsFixed(2)}$label';
+    }
+    return '$prefix€${pricePerUnit!.toStringAsFixed(2)}$label';
+  }
 
   String? get resolvedThumbnailUrl {
     if (thumbnailUrl == null || thumbnailUrl!.isEmpty) return null;
@@ -157,16 +196,37 @@ class CartItem {
   final int stockQuantity;
   final int? buyQuantity;
   final int? getQuantity;
+  final String? unit;
+  final double? weightQuantity;
+  final String? weightUnit;
 
   CartItem({required this.id, required this.productId, required this.productName,
     this.productThumbnail, required this.originalPrice, required this.unitPrice,
     required this.quantity, required this.paidQuantity, required this.freeQuantity,
     required this.subtotal, required this.stockQuantity,
-    this.buyQuantity, this.getQuantity});
+    this.buyQuantity, this.getQuantity,
+    this.unit, this.weightQuantity, this.weightUnit});
 
   bool get hasDiscount => unitPrice < originalPrice;
   bool get hasOffer => buyQuantity != null && getQuantity != null && buyQuantity! >= 1 && getQuantity! >= 1;
   String get offerLabel => '${buyQuantity}+${getQuantity}';
+  bool get isWeighed => unit == 'WEIGHED' && weightQuantity != null && weightUnit != null;
+
+  /// Returns e.g. "500gr" (quantity × weightQuantity + weightUnit) for weighed items
+  String? get totalWeightLabel {
+    if (!isWeighed) return null;
+    final total = quantity * weightQuantity!;
+    final totalStr = total == total.roundToDouble() ? total.round().toString() : total.toStringAsFixed(1);
+    return '$totalStr${weightUnit!}';
+  }
+
+  /// Returns e.g. "100gr" for a single unit weight label
+  String? get singleWeightLabel {
+    if (!isWeighed) return null;
+    final qty = weightQuantity!;
+    final qtyStr = qty == qty.roundToDouble() ? qty.round().toString() : qty.toStringAsFixed(1);
+    return '$qtyStr${weightUnit!}';
+  }
 
   String? get resolvedProductThumbnail {
     if (productThumbnail == null || productThumbnail!.isEmpty) return null;
@@ -186,6 +246,9 @@ class CartItem {
     stockQuantity: json['stockQuantity'] ?? 0,
     buyQuantity: json['buyQuantity'],
     getQuantity: json['getQuantity'],
+    unit: json['unit'],
+    weightQuantity: json['weightQuantity'] != null ? (json['weightQuantity'] as num).toDouble() : null,
+    weightUnit: json['weightUnit'],
   );
 }
 
@@ -216,9 +279,23 @@ class OrderItem {
   final double unitPrice;
   final int quantity;
   final double subtotal;
+  final String? unit;
+  final double? weightQuantity;
+  final String? weightUnit;
 
   OrderItem({required this.id, required this.productId, required this.productName,
-    required this.unitPrice, required this.quantity, required this.subtotal});
+    required this.unitPrice, required this.quantity, required this.subtotal,
+    this.unit, this.weightQuantity, this.weightUnit});
+
+  bool get isWeighed => unit == 'WEIGHED' && weightQuantity != null && weightUnit != null;
+
+  /// Returns e.g. "500gr" for weighed items
+  String? get totalWeightLabel {
+    if (!isWeighed) return null;
+    final total = quantity * weightQuantity!;
+    final totalStr = total == total.roundToDouble() ? total.round().toString() : total.toStringAsFixed(1);
+    return '$totalStr${weightUnit!}';
+  }
 
   factory OrderItem.fromJson(Map<String, dynamic> json) => OrderItem(
     id: json['id'], productId: json['productId'],
@@ -226,6 +303,9 @@ class OrderItem {
     unitPrice: (json['unitPrice'] as num).toDouble(),
     quantity: json['quantity'],
     subtotal: (json['subtotal'] as num).toDouble(),
+    unit: json['unit'],
+    weightQuantity: json['weightQuantity'] != null ? (json['weightQuantity'] as num).toDouble() : null,
+    weightUnit: json['weightUnit'],
   );
 }
 

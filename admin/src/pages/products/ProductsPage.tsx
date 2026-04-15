@@ -8,9 +8,25 @@ import Modal from '../../components/ui/Modal';
 import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, Star, Upload, Link, X, Gift } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, Upload, Link, X, Gift, Scale } from 'lucide-react';
 
 type OfferType = 'none' | 'discount' | 'buyget';
+
+const UNIT_OPTIONS = [
+  { value: '', label: 'No unit' },
+  { value: 'KG', label: 'Kilos (kg)' },
+  { value: 'METERS', label: 'Meters (m)' },
+  { value: 'LITERS', label: 'Liters (lt)' },
+  { value: 'PIECES', label: 'Pieces' },
+  { value: 'WEIGHED', label: 'Weighed' },
+];
+
+const WEIGHT_UNIT_OPTIONS = [
+  { value: 'gr', label: 'Grams (gr)' },
+  { value: 'ml', label: 'Milliliters (ml)' },
+  { value: 'cm', label: 'Centimeters (cm)' },
+  { value: 'pieces', label: 'Pieces' },
+];
 
 const emptyForm = {
   name: '', sku: '', description: '', price: '', discountPrice: '',
@@ -18,6 +34,8 @@ const emptyForm = {
   buyQuantity: '', getQuantity: '',
   offerType: 'none' as OfferType,
   unit: '',
+  weightQuantity: '',
+  weightUnit: 'gr',
   active: true, featured: false, thumbnailUrl: '', categoryId: '', brandId: '',
   stockQuantity: '0', lowStockThreshold: '10',
 };
@@ -65,6 +83,8 @@ export default function ProductsPage() {
       getQuantity: p.getQuantity?.toString() || '',
       offerType,
       unit: p.unit || '',
+      weightQuantity: p.weightQuantity?.toString() || '',
+      weightUnit: p.weightUnit || 'gr',
       active: p.active, featured: p.featured, thumbnailUrl: p.thumbnailUrl || '',
       categoryId: p.categoryId?.toString() || '', brandId: p.brandId?.toString() || '',
       stockQuantity: p.stockQuantity.toString(), lowStockThreshold: '10',
@@ -85,7 +105,9 @@ export default function ProductsPage() {
       discountEndDate: (form.offerType === 'discount' || form.offerType === 'buyget') && form.discountEndDate ? form.discountEndDate : null,
       buyQuantity: form.offerType === 'buyget' && form.buyQuantity ? parseInt(form.buyQuantity) : null,
       getQuantity: form.offerType === 'buyget' && form.getQuantity ? parseInt(form.getQuantity) : null,
-      unit: form.unit, active: form.active, featured: form.featured,
+      unit: form.unit || null, active: form.active, featured: form.featured,
+      weightQuantity: form.unit === 'WEIGHED' && form.weightQuantity ? parseFloat(form.weightQuantity) : null,
+      weightUnit: form.unit === 'WEIGHED' && form.weightUnit ? form.weightUnit : null,
       thumbnailUrl: form.thumbnailUrl, categoryId: Number(form.categoryId),
       brandId: form.brandId ? Number(form.brandId) : null,
       stockQuantity: parseInt(form.stockQuantity), lowStockThreshold: parseInt(form.lowStockThreshold),
@@ -164,6 +186,18 @@ export default function ProductsPage() {
                           ) : null}
                         </>
                       ) : <span>€{p.price}</span>}
+                      {p.pricePerUnit != null && p.pricePerUnitLabel && (
+                        <div style={{ fontSize: '0.7rem', color: 'var(--gray-500)', marginTop: 2 }}>
+                          {p.discountPrice && p.discountPricePerUnit != null ? (
+                            <><span style={{ color: 'var(--accent)' }}>€{p.discountPricePerUnit.toFixed(2)}</span> <span style={{ textDecoration: 'line-through' }}>€{p.pricePerUnit.toFixed(2)}</span>{p.pricePerUnitLabel}</>
+                          ) : (
+                            <>€{p.pricePerUnit.toFixed(2)}{p.pricePerUnitLabel}</>
+                          )}
+                          {p.unit === 'WEIGHED' && p.weightQuantity && p.weightUnit && (
+                            <span style={{ marginLeft: 4, color: 'var(--gray-400)' }}>({p.weightQuantity}{p.weightUnit})</span>
+                          )}
+                        </div>
+                      )}
                     </td>
                     <td style={td}><span style={{ color: p.stockQuantity <= 10 ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{p.stockQuantity}</span></td>
                     <td style={td}>{p.categoryName}</td>
@@ -188,7 +222,26 @@ export default function ProductsPage() {
           <Input label="Name *" value={form.name} onChange={(e) => set('name', e.target.value)} />
           <Input label="SKU *" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
           <Input label="Price *" type="number" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} />
-          <Input label="Unit (e.g. kg, piece)" value={form.unit} onChange={(e) => set('unit', e.target.value)} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--gray-700)' }}>Unit</label>
+            <select value={form.unit} onChange={(e) => set('unit', e.target.value)} style={selectStyle}>
+              {UNIT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+          {form.unit === 'WEIGHED' && (
+            <div style={{ gridColumn: '1 / -1', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, background: 'var(--gray-50)', borderRadius: 'var(--radius)', padding: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, gridColumn: '1 / -1', fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-600)' }}>
+                <Scale size={14} /> Weighed Product Details
+              </div>
+              <Input label="Weight Quantity *" type="number" step="0.01" min="0.01" value={form.weightQuantity} onChange={(e) => set('weightQuantity', e.target.value)} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--gray-700)' }}>Weight Unit *</label>
+                <select value={form.weightUnit} onChange={(e) => set('weightUnit', e.target.value)} style={selectStyle}>
+                  {WEIGHT_UNIT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
 
           {/* Offer type selector */}
           <div style={{ gridColumn: '1 / -1', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius)', padding: 14 }}>

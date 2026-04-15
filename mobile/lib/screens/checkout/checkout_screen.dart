@@ -180,7 +180,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         children: [
                           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                             Expanded(child: Row(children: [
-                              Flexible(child: Text('${item.productName} x${item.quantity}', maxLines: 1, overflow: TextOverflow.ellipsis)),
+                              Flexible(child: Text('${item.productName} ${item.isWeighed ? item.totalWeightLabel! : 'x${item.quantity}'}', maxLines: 1, overflow: TextOverflow.ellipsis)),
                               if (item.hasOffer) ...[
                                 const SizedBox(width: 4),
                                 Container(

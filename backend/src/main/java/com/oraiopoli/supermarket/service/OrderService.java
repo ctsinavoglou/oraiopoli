@@ -101,6 +101,9 @@ public class OrderService {
                     .paidQuantity(paidQty)
                     .freeQuantity(freeQty)
                     .subtotal(subtotal)
+                    .unit(product.getUnit() != null ? product.getUnit().name() : null)
+                    .weightQuantity(product.getWeightQuantity())
+                    .weightUnit(product.getWeightUnit())
                     .build();
 
             order.getItems().add(orderItem);

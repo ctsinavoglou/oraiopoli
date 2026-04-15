@@ -21,6 +21,9 @@ public class OrderItemResponse {
     private int paidQuantity;
     private int freeQuantity;
     private BigDecimal subtotal;
+    private String unit;
+    private BigDecimal weightQuantity;
+    private String weightUnit;
 
     public static OrderItemResponse fromEntity(OrderItem item) {
         return OrderItemResponse.builder()
@@ -32,6 +35,9 @@ public class OrderItemResponse {
                 .paidQuantity(item.getPaidQuantity())
                 .freeQuantity(item.getFreeQuantity())
                 .subtotal(item.getSubtotal())
+                .unit(item.getUnit())
+                .weightQuantity(item.getWeightQuantity())
+                .weightUnit(item.getWeightUnit())
                 .build();
     }
 }
