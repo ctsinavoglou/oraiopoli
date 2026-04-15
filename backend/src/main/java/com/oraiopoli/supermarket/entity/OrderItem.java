@@ -31,6 +31,14 @@ public class OrderItem extends BaseEntity {
     @Column(nullable = false)
     private int quantity;
 
+    @Column(name = "paid_quantity", columnDefinition = "int default 0")
+    @Builder.Default
+    private int paidQuantity = 0;
+
+    @Column(name = "free_quantity", columnDefinition = "int default 0")
+    @Builder.Default
+    private int freeQuantity = 0;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;
 }

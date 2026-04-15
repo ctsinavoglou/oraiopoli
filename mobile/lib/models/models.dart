@@ -81,6 +81,8 @@ class Product {
   final String? description;
   final double price;
   final double? discountPrice;
+  final int? buyQuantity;
+  final int? getQuantity;
   final String? unit;
   final bool active;
   final bool featured;
@@ -93,7 +95,8 @@ class Product {
   final List<ProductImage>? images;
 
   Product({required this.id, required this.name, required this.slug, this.sku,
-    this.description, required this.price, this.discountPrice, this.unit,
+    this.description, required this.price, this.discountPrice,
+    this.buyQuantity, this.getQuantity, this.unit,
     required this.active, required this.featured, this.thumbnailUrl,
     this.categoryName, this.categoryId, this.brandName,
     required this.stockQuantity, required this.inStock, this.images});
@@ -103,6 +106,8 @@ class Product {
     sku: json['sku'], description: json['description'],
     price: (json['price'] as num).toDouble(),
     discountPrice: json['discountPrice'] != null ? (json['discountPrice'] as num).toDouble() : null,
+    buyQuantity: json['buyQuantity'],
+    getQuantity: json['getQuantity'],
     unit: json['unit'], active: json['active'] ?? true, featured: json['featured'] ?? false,
     thumbnailUrl: json['thumbnailUrl'], categoryName: json['categoryName'],
     categoryId: json['categoryId'], brandName: json['brandName'],
@@ -114,6 +119,8 @@ class Product {
 
   double get effectivePrice => discountPrice ?? price;
   bool get hasDiscount => discountPrice != null && discountPrice! < price;
+  bool get hasOffer => buyQuantity != null && getQuantity != null && buyQuantity! >= 1 && getQuantity! >= 1;
+  String get offerLabel => '${buyQuantity}+${getQuantity}';
 
   String? get resolvedThumbnailUrl {
     if (thumbnailUrl == null || thumbnailUrl!.isEmpty) return null;
@@ -144,14 +151,22 @@ class CartItem {
   final double originalPrice;
   final double unitPrice;
   final int quantity;
+  final int paidQuantity;
+  final int freeQuantity;
   final double subtotal;
   final int stockQuantity;
+  final int? buyQuantity;
+  final int? getQuantity;
 
   CartItem({required this.id, required this.productId, required this.productName,
     this.productThumbnail, required this.originalPrice, required this.unitPrice,
-    required this.quantity, required this.subtotal, required this.stockQuantity});
+    required this.quantity, required this.paidQuantity, required this.freeQuantity,
+    required this.subtotal, required this.stockQuantity,
+    this.buyQuantity, this.getQuantity});
 
   bool get hasDiscount => unitPrice < originalPrice;
+  bool get hasOffer => buyQuantity != null && getQuantity != null && buyQuantity! >= 1 && getQuantity! >= 1;
+  String get offerLabel => '${buyQuantity}+${getQuantity}';
 
   String? get resolvedProductThumbnail {
     if (productThumbnail == null || productThumbnail!.isEmpty) return null;
@@ -165,8 +180,12 @@ class CartItem {
     originalPrice: json['originalPrice'] != null ? (json['originalPrice'] as num).toDouble() : (json['unitPrice'] as num).toDouble(),
     unitPrice: (json['unitPrice'] as num).toDouble(),
     quantity: json['quantity'],
+    paidQuantity: json['paidQuantity'] ?? json['quantity'],
+    freeQuantity: json['freeQuantity'] ?? 0,
     subtotal: (json['subtotal'] as num).toDouble(),
     stockQuantity: json['stockQuantity'] ?? 0,
+    buyQuantity: json['buyQuantity'],
+    getQuantity: json['getQuantity'],
   );
 }
 
@@ -218,18 +237,28 @@ class Order {
   final String shippingAddress;
   final String? contactPhone;
   final String? notes;
+  final String? deliveryTimeSlot;
+  final String? deliveryMethod;
+  final double? expressDeliveryFee;
+  final double? plasticBagFee;
   final List<OrderItem> items;
   final String? createdAt;
 
   Order({required this.id, required this.orderNumber, required this.status,
     required this.totalAmount, required this.shippingAddress,
-    this.contactPhone, this.notes, required this.items, this.createdAt});
+    this.contactPhone, this.notes, this.deliveryTimeSlot,
+    this.deliveryMethod, this.expressDeliveryFee, this.plasticBagFee,
+    required this.items, this.createdAt});
 
   factory Order.fromJson(Map<String, dynamic> json) => Order(
     id: json['id'], orderNumber: json['orderNumber'], status: json['status'],
     totalAmount: (json['totalAmount'] as num).toDouble(),
     shippingAddress: json['shippingAddress'], contactPhone: json['contactPhone'],
     notes: json['notes'],
+    deliveryTimeSlot: json['deliveryTimeSlot'],
+    deliveryMethod: json['deliveryMethod'],
+    expressDeliveryFee: json['expressDeliveryFee'] != null ? (json['expressDeliveryFee'] as num).toDouble() : null,
+    plasticBagFee: json['plasticBagFee'] != null ? (json['plasticBagFee'] as num).toDouble() : null,
     items: (json['items'] as List).map((i) => OrderItem.fromJson(i)).toList(),
     createdAt: json['createdAt'],
   );
@@ -243,14 +272,19 @@ class Address {
   final String? postalCode;
   final String? country;
   final bool isDefault;
+  final double? latitude;
+  final double? longitude;
 
   Address({required this.id, required this.label, required this.addressLine,
-    this.city, this.postalCode, this.country, required this.isDefault});
+    this.city, this.postalCode, this.country, required this.isDefault,
+    this.latitude, this.longitude});
 
   factory Address.fromJson(Map<String, dynamic> json) => Address(
     id: json['id'], label: json['label'], addressLine: json['addressLine'],
     city: json['city'], postalCode: json['postalCode'], country: json['country'],
     isDefault: json['isDefault'] ?? json['default'] ?? false,
+    latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+    longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
   );
 }
 

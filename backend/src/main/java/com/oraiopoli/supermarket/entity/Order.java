@@ -58,6 +58,19 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_fee", precision = 10, scale = 2)
     private BigDecimal deliveryFee;
 
+    @Column(name = "delivery_method")
+    @Builder.Default
+    private String deliveryMethod = "STANDARD";
+
+    @Column(name = "delivery_time_slot")
+    private String deliveryTimeSlot;
+
+    @Column(name = "express_delivery_fee", precision = 10, scale = 2)
+    private BigDecimal expressDeliveryFee;
+
+    @Column(name = "plastic_bag_fee", precision = 10, scale = 2)
+    private BigDecimal plasticBagFee;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();

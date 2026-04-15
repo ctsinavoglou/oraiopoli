@@ -31,7 +31,7 @@ public class ProductService {
 
     // Public methods
     public Page<ProductResponse> getActiveProducts(Pageable pageable) {
-        return productRepository.findByActiveTrue(pageable)
+        return productRepository.findByActiveTrueSorted(pageable)
                 .map(ProductResponse::fromEntityLightweight);
     }
 
@@ -64,7 +64,7 @@ public class ProductService {
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "id", id));
-        return ProductResponse.fromEntity(product);
+        return ProductResponse.fromEntityAdmin(product);
     }
 
     public Page<ProductResponse> filterProducts(Long categoryId, Long brandId,
@@ -92,16 +92,16 @@ public class ProductService {
     // Admin methods
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
         return productRepository.findAll(pageable)
-                .map(ProductResponse::fromEntity);
+                .map(ProductResponse::fromEntityAdmin);
     }
 
     public Page<ProductResponse> getAllProducts(String search, Pageable pageable) {
         if (search != null && !search.isBlank()) {
             return productRepository.searchAllProducts(search, pageable)
-                    .map(ProductResponse::fromEntity);
+                    .map(ProductResponse::fromEntityAdmin);
         }
         return productRepository.findAll(pageable)
-                .map(ProductResponse::fromEntity);
+                .map(ProductResponse::fromEntityAdmin);
     }
 
     @Transactional
@@ -130,6 +130,10 @@ public class ProductService {
                 .description(request.getDescription())
                 .price(request.getPrice())
                 .discountPrice(request.getDiscountPrice())
+                .discountStartDate(request.getDiscountStartDate())
+                .discountEndDate(request.getDiscountEndDate())
+                .buyQuantity(request.getBuyQuantity())
+                .getQuantity(request.getGetQuantity())
                 .unit(request.getUnit())
                 .active(request.isActive())
                 .featured(request.isFeatured())
@@ -137,6 +141,8 @@ public class ProductService {
                 .category(category)
                 .brand(brand)
                 .build();
+
+        validateOfferExclusivity(product);
 
         product = productRepository.save(product);
 
@@ -163,7 +169,7 @@ public class ProductService {
             }
         }
 
-        return ProductResponse.fromEntity(product);
+        return ProductResponse.fromEntityAdmin(product);
     }
 
     @Transactional
@@ -185,12 +191,18 @@ public class ProductService {
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setDiscountPrice(request.getDiscountPrice());
+        product.setDiscountStartDate(request.getDiscountStartDate());
+        product.setDiscountEndDate(request.getDiscountEndDate());
+        product.setBuyQuantity(request.getBuyQuantity());
+        product.setGetQuantity(request.getGetQuantity());
         product.setUnit(request.getUnit());
         product.setActive(request.isActive());
         product.setFeatured(request.isFeatured());
         product.setThumbnailUrl(request.getThumbnailUrl());
         product.setCategory(category);
         product.setBrand(brand);
+
+        validateOfferExclusivity(product);
 
         product = productRepository.save(product);
 
@@ -201,7 +213,7 @@ public class ProductService {
             inventoryRepository.save(product.getInventory());
         }
 
-        return ProductResponse.fromEntity(product);
+        return ProductResponse.fromEntityAdmin(product);
     }
 
     @Transactional
@@ -227,13 +239,23 @@ public class ProductService {
         }
         inventoryRepository.save(inventory);
 
-        return ProductResponse.fromEntity(product);
+        return ProductResponse.fromEntityAdmin(product);
     }
 
     public List<ProductResponse> getLowStockProducts() {
         return productRepository.findLowStockProducts().stream()
-                .map(ProductResponse::fromEntity)
+                .map(ProductResponse::fromEntityAdmin)
                 .toList();
+    }
+
+    // Validation
+    private void validateOfferExclusivity(Product product) {
+        boolean hasDiscount = product.getDiscountPrice() != null;
+        boolean hasOffer = product.getBuyQuantity() != null && product.getGetQuantity() != null
+                && product.getBuyQuantity() >= 1 && product.getGetQuantity() >= 1;
+        if (hasDiscount && hasOffer) {
+            throw new BadRequestException("A product cannot have both a discount price and a buy+get offer. Please choose one.");
+        }
     }
 
     // Specifications

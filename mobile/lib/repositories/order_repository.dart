@@ -12,10 +12,16 @@ class OrderRepository {
   final Dio _dio;
   OrderRepository(this._dio);
 
-  Future<Order> checkout(int addressId, {String? notes, String? promoCode}) async {
+  Future<Order> checkout(int addressId, {String? notes, String? promoCode, String? deliveryTimeSlot, String? deliveryMethod}) async {
     final data = <String, dynamic>{'addressId': addressId, 'notes': notes};
     if (promoCode != null && promoCode.isNotEmpty) {
       data['promotionCode'] = promoCode;
+    }
+    if (deliveryTimeSlot != null && deliveryTimeSlot.isNotEmpty) {
+      data['deliveryTimeSlot'] = deliveryTimeSlot;
+    }
+    if (deliveryMethod != null && deliveryMethod.isNotEmpty) {
+      data['deliveryMethod'] = deliveryMethod;
     }
     final res = await _dio.post(ApiConstants.customerCheckout, data: data);
     return Order.fromJson(res.data['data']);
@@ -44,6 +50,11 @@ class OrderRepository {
 
   Future<Address> createAddress(Map<String, dynamic> data) async {
     final res = await _dio.post(ApiConstants.customerAddresses, data: data);
+    return Address.fromJson(res.data['data']);
+  }
+
+  Future<Address> updateAddress(int id, Map<String, dynamic> data) async {
+    final res = await _dio.put('${ApiConstants.customerAddresses}/$id', data: data);
     return Address.fromJson(res.data['data']);
   }
 

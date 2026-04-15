@@ -28,6 +28,10 @@ public class OrderResponse {
     private String shippingPostalCode;
     private String contactPhone;
     private String notes;
+    private String deliveryTimeSlot;
+    private String deliveryMethod;
+    private BigDecimal expressDeliveryFee;
+    private BigDecimal plasticBagFee;
     private String customerName;
     private String customerEmail;
     private List<OrderItemResponse> items;
@@ -48,6 +52,10 @@ public class OrderResponse {
                 .shippingPostalCode(order.getShippingPostalCode())
                 .contactPhone(order.getContactPhone())
                 .notes(order.getNotes())
+                .deliveryTimeSlot(order.getDeliveryTimeSlot())
+                .deliveryMethod(order.getDeliveryMethod())
+                .expressDeliveryFee(order.getExpressDeliveryFee())
+                .plasticBagFee(order.getPlasticBagFee())
                 .customerName(order.getUser().getFullName())
                 .customerEmail(order.getUser().getEmail())
                 .items(order.getItems().stream().map(OrderItemResponse::fromEntity).toList())

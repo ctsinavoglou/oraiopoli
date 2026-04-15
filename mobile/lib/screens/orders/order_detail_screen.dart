@@ -8,6 +8,14 @@ class OrderDetailScreen extends ConsumerWidget {
   final int orderId;
   const OrderDetailScreen({super.key, required this.orderId});
 
+  String _deliveryMethodLabel(String method) {
+    switch (method) {
+      case 'EXPRESS': return 'Express Delivery';
+      case 'PICKUP': return 'Store Pickup';
+      default: return 'Standard Delivery';
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
@@ -32,7 +40,10 @@ class OrderDetailScreen extends ConsumerWidget {
                 ]),
                 const SizedBox(height: 10),
                 Text('Address: ${order.shippingAddress}', style: const TextStyle(color: AppColors.textSecondary)),
+                if (order.deliveryMethod != null)
+                  Text('Delivery: ${_deliveryMethodLabel(order.deliveryMethod!)}', style: const TextStyle(color: AppColors.textSecondary)),
                 if (order.contactPhone != null) Text('Phone: ${order.contactPhone}', style: const TextStyle(color: AppColors.textSecondary)),
+                if (order.deliveryTimeSlot != null) Text('Delivery Slot: ${order.deliveryTimeSlot}', style: const TextStyle(color: AppColors.textSecondary)),
                 if (order.notes != null) Text('Notes: ${order.notes}', style: const TextStyle(color: AppColors.textSecondary)),
               ]))),
               const SizedBox(height: 16),

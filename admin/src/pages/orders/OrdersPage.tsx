@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getOrders, getOrderById, updateOrderStatus } from '../../api/admin';
@@ -12,6 +13,14 @@ import toast from 'react-hot-toast';
 import { Eye } from 'lucide-react';
 
 const statuses: OrderStatus[] = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'COMPLETED', 'CANCELLED', 'REFUNDED'];
+
+const deliveryMethodLabel = (m?: string) => {
+  switch (m) {
+    case 'EXPRESS': return { label: '⚡ Express', color: '#f59e0b', bg: '#fef3c7' };
+    case 'PICKUP': return { label: '🏪 Pickup', color: '#8b5cf6', bg: '#ede9fe' };
+    default: return { label: '🚚 Standard', color: '#2563eb', bg: '#dbeafe' };
+  }
+};
 
 export default function OrdersPage() {
   const qc = useQueryClient();
@@ -69,7 +78,7 @@ export default function OrdersPage() {
               <thead>
                 <tr style={{ background: 'var(--gray-50)', textAlign: 'left' }}>
                   <th style={th}>Order #</th><th style={th}>Customer</th><th style={th}>Amount</th>
-                  <th style={th}>Status</th><th style={th}>Notes</th><th style={th}>Date</th><th style={th}>Actions</th>
+                  <th style={th}>Status</th><th style={th}>Delivery</th><th style={th}>Notes</th><th style={th}>Date</th><th style={th}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -82,6 +91,12 @@ export default function OrdersPage() {
                       {o.promotionCode && <span style={{ display: 'inline-block', marginLeft: 6, padding: '1px 6px', background: 'var(--green-light, #dcfce7)', color: 'var(--green, #16a34a)', borderRadius: 4, fontSize: '0.7rem', fontWeight: 600 }}>🏷 {o.promotionCode}</span>}
                     </td>
                     <td style={td}><Badge status={o.status} /></td>
+                    <td style={td}>
+                      {(() => { const dm = deliveryMethodLabel(o.deliveryMethod); return (
+                        <span style={{ display: 'inline-block', padding: '2px 8px', background: dm.bg, color: dm.color, borderRadius: 6, fontSize: '0.72rem', fontWeight: 600 }}>{dm.label}</span>
+                      ); })()}
+                      {o.deliveryTimeSlot && <div style={{ fontSize: '0.72rem', color: 'var(--gray-500)', marginTop: 2 }}>{o.deliveryTimeSlot}</div>}
+                    </td>
                     <td style={td}>{o.notes ? <span style={{ fontWeight: 700 }}>{o.notes}</span> : <span style={{ color: 'var(--gray-300)' }}>—</span>}</td>
                     <td style={td}>{new Date(o.createdAt).toLocaleString()}</td>
                     <td style={td}>
@@ -90,7 +105,7 @@ export default function OrdersPage() {
                   </tr>
                 ))}
                 {data?.content.length === 0 && (
-                  <tr><td colSpan={7} style={{ ...td, textAlign: 'center', color: 'var(--gray-400)' }}>No orders found</td></tr>
+                  <tr><td colSpan={8} style={{ ...td, textAlign: 'center', color: 'var(--gray-400)' }}>No orders found</td></tr>
                 )}
               </tbody>
             </table>
@@ -107,6 +122,13 @@ export default function OrdersPage() {
               <div><strong>Email:</strong> {selectedOrder.customerEmail}</div>
               <div><strong>Phone:</strong> {selectedOrder.contactPhone || '—'}</div>
               <div><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</div>
+              <div>
+                <strong>Delivery:</strong>{' '}
+                {(() => { const dm = deliveryMethodLabel(selectedOrder.deliveryMethod); return (
+                  <span style={{ display: 'inline-block', padding: '2px 8px', background: dm.bg, color: dm.color, borderRadius: 6, fontSize: '0.78rem', fontWeight: 600 }}>{dm.label}</span>
+                ); })()}
+                {selectedOrder.deliveryTimeSlot && <span style={{ marginLeft: 6, fontSize: '0.82rem' }}>({selectedOrder.deliveryTimeSlot})</span>}
+              </div>
               <div style={{ gridColumn: '1 / -1' }}><strong>Address:</strong> {selectedOrder.shippingAddress}{selectedOrder.shippingCity ? `, ${selectedOrder.shippingCity}` : ''}</div>
               {selectedOrder.notes && <div style={{ gridColumn: '1 / -1' }}><strong>Notes:</strong> {selectedOrder.notes}</div>}
               {selectedOrder.promotionCode && (
@@ -131,10 +153,32 @@ export default function OrdersPage() {
               <tbody>
                 {selectedOrder.items.map((item) => (
                   <tr key={item.id} style={{ borderBottom: '1px solid var(--gray-100)' }}>
-                    <td style={td}>{item.productName}</td>
+                    <td style={td}>
+                      {item.productName}
+                      {item.freeQuantity > 0 && (
+                        <span style={{ marginLeft: 6, padding: '1px 6px', background: 'var(--primary, #2563eb)', color: '#fff', borderRadius: 4, fontSize: '0.7rem', fontWeight: 600 }}>
+                          {`${item.paidQuantity}+${item.freeQuantity} FREE`}
+                        </span>
+                      )}
+                    </td>
                     <td style={td}>€{item.unitPrice.toFixed(2)}</td>
-                    <td style={td}>{item.quantity}</td>
-                    <td style={td}>€{item.subtotal.toFixed(2)}</td>
+                    <td style={td}>
+                      {item.freeQuantity > 0 ? (
+                        <span title={`${item.paidQuantity} paid + ${item.freeQuantity} free`}>
+                          {item.quantity} <span style={{ fontSize: '0.7rem', color: 'var(--gray-400)' }}>({item.paidQuantity} paid)</span>
+                        </span>
+                      ) : item.quantity}
+                    </td>
+                    <td style={td}>
+                      {item.freeQuantity > 0 ? (
+                        <>
+                          <span style={{ textDecoration: 'line-through', color: 'var(--gray-400)', marginRight: 4, fontSize: '0.78rem' }}>€{(item.unitPrice * item.quantity).toFixed(2)}</span>
+                          <span style={{ color: 'var(--green, #16a34a)', fontWeight: 600 }}>€{item.subtotal.toFixed(2)}</span>
+                        </>
+                      ) : (
+                        <>€{item.subtotal.toFixed(2)}</>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -142,10 +186,14 @@ export default function OrdersPage() {
                 {(() => {
                   const hasDiscount = selectedOrder.discountAmount != null && selectedOrder.discountAmount > 0;
                   const hasDelivery = selectedOrder.deliveryFee != null && selectedOrder.deliveryFee > 0;
+                  const hasExpress = selectedOrder.expressDeliveryFee != null && selectedOrder.expressDeliveryFee > 0;
+                  const hasBagFee = selectedOrder.plasticBagFee != null && selectedOrder.plasticBagFee > 0;
                   const itemsSubtotal = selectedOrder.totalAmount
                     + (selectedOrder.discountAmount ?? 0)
-                    - (selectedOrder.deliveryFee ?? 0);
-                  if (hasDiscount || hasDelivery) {
+                    - (selectedOrder.deliveryFee ?? 0)
+                    - (selectedOrder.expressDeliveryFee ?? 0)
+                    - (selectedOrder.plasticBagFee ?? 0);
+                  if (hasDiscount || hasDelivery || hasExpress || hasBagFee) {
                     return (
                       <>
                         <tr><td colSpan={3} style={{ ...td, textAlign: 'right', color: 'var(--gray-500)' }}>Subtotal:</td>
@@ -154,9 +202,17 @@ export default function OrdersPage() {
                           <tr><td colSpan={3} style={{ ...td, textAlign: 'right', color: 'var(--green, #16a34a)', fontWeight: 600 }}>Discount ({selectedOrder.promotionCode}):</td>
                             <td style={{ ...td, color: 'var(--green, #16a34a)', fontWeight: 600 }}>-€{selectedOrder.discountAmount!.toFixed(2)}</td></tr>
                         )}
+                        {hasBagFee && (
+                          <tr><td colSpan={3} style={{ ...td, textAlign: 'right', color: 'var(--gray-500)' }}>Plastic Bags:</td>
+                            <td style={{ ...td, color: 'var(--gray-500)' }}>€{selectedOrder.plasticBagFee!.toFixed(2)}</td></tr>
+                        )}
                         {hasDelivery && (
                           <tr><td colSpan={3} style={{ ...td, textAlign: 'right', color: 'var(--gray-500)' }}>Delivery Fee:</td>
                             <td style={{ ...td, color: 'var(--gray-500)' }}>€{selectedOrder.deliveryFee!.toFixed(2)}</td></tr>
+                        )}
+                        {hasExpress && (
+                          <tr><td colSpan={3} style={{ ...td, textAlign: 'right', color: '#f59e0b' }}>Express Surcharge:</td>
+                            <td style={{ ...td, color: '#f59e0b' }}>€{selectedOrder.expressDeliveryFee!.toFixed(2)}</td></tr>
                         )}
                       </>
                     );

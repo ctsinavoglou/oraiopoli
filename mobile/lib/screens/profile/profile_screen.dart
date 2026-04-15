@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/order_provider.dart';
 import '../../providers/product_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -43,8 +42,7 @@ class ProfileScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               _menuItem(context, Icons.shopping_bag_outlined, 'My Orders', () => context.push('/orders')),
               _menuItem(context, Icons.location_on_outlined, 'Addresses', () {
-                ref.invalidate(addressesProvider);
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Addresses page coming soon')));
+                context.push('/address');
               }),
               const SizedBox(height: 16),
 
@@ -115,6 +113,9 @@ class _StoreInfoCard extends StatelessWidget {
                   'Free delivery over €${info['free_delivery_threshold'] ?? '0'}'),
               _infoRow(Icons.shopping_basket_outlined,
                   'Min. order: €${info['min_order_amount'] ?? '0'}'),
+              if (info['max_delivery_km']?.isNotEmpty == true)
+                _infoRow(Icons.straighten_outlined,
+                    'Max delivery: ${info['max_delivery_km']} km'),
             ],
           ),
         ),

@@ -8,10 +8,16 @@ import Modal from '../../components/ui/Modal';
 import Pagination from '../../components/ui/Pagination';
 import Spinner from '../../components/ui/Spinner';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Trash2, Star, Upload, Link, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Star, Upload, Link, X, Gift } from 'lucide-react';
+
+type OfferType = 'none' | 'discount' | 'buyget';
 
 const emptyForm = {
-  name: '', sku: '', description: '', price: '', discountPrice: '', unit: '',
+  name: '', sku: '', description: '', price: '', discountPrice: '',
+  discountStartDate: '', discountEndDate: '',
+  buyQuantity: '', getQuantity: '',
+  offerType: 'none' as OfferType,
+  unit: '',
   active: true, featured: false, thumbnailUrl: '', categoryId: '', brandId: '',
   stockQuantity: '0', lowStockThreshold: '10',
 };
@@ -47,9 +53,18 @@ export default function ProductsPage() {
   const openCreate = () => { setEditing(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit = (p: Product) => {
     setEditing(p);
+    let offerType: OfferType = 'none';
+    if (p.discountPrice) offerType = 'discount';
+    else if (p.buyQuantity && p.getQuantity) offerType = 'buyget';
     setForm({
       name: p.name, sku: p.sku, description: p.description || '', price: p.price.toString(),
-      discountPrice: p.discountPrice?.toString() || '', unit: p.unit || '',
+      discountPrice: p.discountPrice?.toString() || '',
+      discountStartDate: p.discountStartDate ? p.discountStartDate.slice(0, 16) : '',
+      discountEndDate: p.discountEndDate ? p.discountEndDate.slice(0, 16) : '',
+      buyQuantity: p.buyQuantity?.toString() || '',
+      getQuantity: p.getQuantity?.toString() || '',
+      offerType,
+      unit: p.unit || '',
       active: p.active, featured: p.featured, thumbnailUrl: p.thumbnailUrl || '',
       categoryId: p.categoryId?.toString() || '', brandId: p.brandId?.toString() || '',
       stockQuantity: p.stockQuantity.toString(), lowStockThreshold: '10',
@@ -65,7 +80,11 @@ export default function ProductsPage() {
     saveMut.mutate({
       name: form.name, sku: form.sku, description: form.description,
       price: parseFloat(form.price),
-      discountPrice: form.discountPrice ? parseFloat(form.discountPrice) : null,
+      discountPrice: form.offerType === 'discount' && form.discountPrice ? parseFloat(form.discountPrice) : null,
+      discountStartDate: (form.offerType === 'discount' || form.offerType === 'buyget') && form.discountStartDate ? form.discountStartDate : null,
+      discountEndDate: (form.offerType === 'discount' || form.offerType === 'buyget') && form.discountEndDate ? form.discountEndDate : null,
+      buyQuantity: form.offerType === 'buyget' && form.buyQuantity ? parseInt(form.buyQuantity) : null,
+      getQuantity: form.offerType === 'buyget' && form.getQuantity ? parseInt(form.getQuantity) : null,
       unit: form.unit, active: form.active, featured: form.featured,
       thumbnailUrl: form.thumbnailUrl, categoryId: Number(form.categoryId),
       brandId: form.brandId ? Number(form.brandId) : null,
@@ -119,7 +138,31 @@ export default function ProductsPage() {
                     <td style={td}><code style={{ fontSize: '0.78rem', color: 'var(--gray-500)' }}>{p.sku}</code></td>
                     <td style={td}>
                       {p.discountPrice ? (
-                        <><span style={{ textDecoration: 'line-through', color: 'var(--gray-400)', marginRight: 4 }}>€{p.price}</span><span style={{ color: 'var(--accent)', fontWeight: 600 }}>€{p.discountPrice}</span></>
+                        <>
+                          <span style={{ textDecoration: 'line-through', color: 'var(--gray-400)', marginRight: 4 }}>€{p.price}</span>
+                          <span style={{ color: 'var(--accent)', fontWeight: 600 }}>€{p.discountPrice}</span>
+                          {p.discountStartDate || p.discountEndDate ? (
+                            <div style={{ fontSize: '0.7rem', color: 'var(--gray-400)', marginTop: 2 }}>
+                              {p.discountStartDate ? new Date(p.discountStartDate).toLocaleDateString() : '∞'}
+                              {' – '}
+                              {p.discountEndDate ? new Date(p.discountEndDate).toLocaleDateString() : '∞'}
+                            </div>
+                          ) : null}
+                        </>
+                      ) : p.buyQuantity && p.getQuantity ? (
+                        <>
+                          <span>€{p.price}</span>
+                          <span style={{ marginLeft: 6, background: 'var(--primary)', color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: '0.75rem', fontWeight: 600 }}>
+                            <Gift size={10} style={{ verticalAlign: 'middle', marginRight: 2 }} />{p.buyQuantity}+{p.getQuantity}
+                          </span>
+                          {p.discountStartDate || p.discountEndDate ? (
+                            <div style={{ fontSize: '0.7rem', color: 'var(--gray-400)', marginTop: 2 }}>
+                              {p.discountStartDate ? new Date(p.discountStartDate).toLocaleDateString() : '∞'}
+                              {' – '}
+                              {p.discountEndDate ? new Date(p.discountEndDate).toLocaleDateString() : '∞'}
+                            </div>
+                          ) : null}
+                        </>
                       ) : <span>€{p.price}</span>}
                     </td>
                     <td style={td}><span style={{ color: p.stockQuantity <= 10 ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{p.stockQuantity}</span></td>
@@ -145,8 +188,39 @@ export default function ProductsPage() {
           <Input label="Name *" value={form.name} onChange={(e) => set('name', e.target.value)} />
           <Input label="SKU *" value={form.sku} onChange={(e) => set('sku', e.target.value)} />
           <Input label="Price *" type="number" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} />
-          <Input label="Discount Price" type="number" step="0.01" value={form.discountPrice} onChange={(e) => set('discountPrice', e.target.value)} />
           <Input label="Unit (e.g. kg, piece)" value={form.unit} onChange={(e) => set('unit', e.target.value)} />
+
+          {/* Offer type selector */}
+          <div style={{ gridColumn: '1 / -1', border: '1px solid var(--gray-200)', borderRadius: 'var(--radius)', padding: 14 }}>
+            <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--gray-700)', marginBottom: 8, display: 'block' }}>Offer Type</label>
+            <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
+              {(['none', 'discount', 'buyget'] as OfferType[]).map((t) => (
+                <label key={t} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', cursor: 'pointer' }}>
+                  <input type="radio" name="offerType" checked={form.offerType === t} onChange={() => set('offerType', t)} />
+                  {t === 'none' ? 'No offer' : t === 'discount' ? 'Discount Price' : 'Buy + Get Free'}
+                </label>
+              ))}
+            </div>
+            {form.offerType === 'discount' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <Input label="Discount Price *" type="number" step="0.01" value={form.discountPrice} onChange={(e) => set('discountPrice', e.target.value)} />
+                <div />
+                <Input label="Start Date" type="datetime-local" value={form.discountStartDate} onChange={(e) => set('discountStartDate', e.target.value)} />
+                <Input label="End Date" type="datetime-local" value={form.discountEndDate} onChange={(e) => set('discountEndDate', e.target.value)} />
+              </div>
+            )}
+            {form.offerType === 'buyget' && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <Input label="Buy Quantity *" type="number" min="1" value={form.buyQuantity} onChange={(e) => set('buyQuantity', e.target.value)} />
+                <Input label="Get Free *" type="number" min="1" value={form.getQuantity} onChange={(e) => set('getQuantity', e.target.value)} />
+                <Input label="Start Date" type="datetime-local" value={form.discountStartDate} onChange={(e) => set('discountStartDate', e.target.value)} />
+                <Input label="End Date" type="datetime-local" value={form.discountEndDate} onChange={(e) => set('discountEndDate', e.target.value)} />
+              </div>
+            )}
+            {form.offerType === 'none' && (
+              <p style={{ fontSize: '0.8rem', color: 'var(--gray-400)', margin: 0 }}>No special offer on this product.</p>
+            )}
+          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--gray-700)' }}>Thumbnail</label>
             {form.thumbnailUrl ? (

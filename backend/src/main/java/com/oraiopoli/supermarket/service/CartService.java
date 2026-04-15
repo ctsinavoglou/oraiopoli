@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -49,7 +51,8 @@ public class CartService {
 
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
-            int newQuantity = item.getQuantity() + request.getQuantity();
+            int rawNew = item.getQuantity() + request.getQuantity();
+            int newQuantity = adjustQuantityForOffer(product, rawNew, item.getQuantity());
             if (newQuantity > availableStock) {
                 throw new BadRequestException("Only " + availableStock + " available in stock" +
                         (item.getQuantity() > 0 ? " (" + item.getQuantity() + " already in cart)" : ""));
@@ -57,13 +60,14 @@ public class CartService {
             item.setQuantity(newQuantity);
             cartItemRepository.save(item);
         } else {
-            if (request.getQuantity() > availableStock) {
+            int newQuantity = adjustQuantityForOffer(product, request.getQuantity(), 0);
+            if (newQuantity > availableStock) {
                 throw new BadRequestException("Only " + availableStock + " available in stock");
             }
             CartItem item = CartItem.builder()
                     .cart(cart)
                     .product(product)
-                    .quantity(request.getQuantity())
+                    .quantity(newQuantity)
                     .build();
             cartItemRepository.save(item);
             cart.getItems().add(item);
@@ -88,12 +92,13 @@ public class CartService {
             cartItemRepository.delete(item);
             cart.getItems().remove(item);
         } else {
+            int adjustedQuantity = adjustQuantityForOffer(item.getProduct(), quantity, item.getQuantity());
             int availableStock = item.getProduct().getInventory() != null
                     ? item.getProduct().getInventory().getQuantity() : 0;
-            if (quantity > availableStock) {
+            if (adjustedQuantity > availableStock) {
                 throw new BadRequestException("Only " + availableStock + " available in stock");
             }
-            item.setQuantity(quantity);
+            item.setQuantity(adjustedQuantity);
             cartItemRepository.save(item);
         }
 
@@ -132,6 +137,43 @@ public class CartService {
                     Cart cart = Cart.builder().user(user).build();
                     return cartRepository.save(cart);
                 });
+    }
+
+    /**
+     * Adjusts quantity for buy+get offers.
+     *
+     * When INCREASING: once the remainder within a group reaches buyQty,
+     * snap up to the full group (add the free items).
+     * E.g., 1+1: add 1 → snap to 2.  2+1: add 1 → stay 1, add 2 → snap to 3.
+     *
+     * When DECREASING: no auto-adjustment — let the user go to any quantity.
+     * The free-item calculation in CartItemResponse handles partial groups
+     * (freeQuantity=0 when below a full group).
+     */
+    private int adjustQuantityForOffer(Product product, int requestedQuantity, int currentQuantity) {
+        if (!isOfferActive(product)) return requestedQuantity;
+        if (requestedQuantity <= currentQuantity) return requestedQuantity; // decreasing — no snap
+
+        int buyQty = product.getBuyQuantity();
+        int getQty = product.getGetQuantity();
+        int groupSize = buyQty + getQty;
+
+        int fullGroups = requestedQuantity / groupSize;
+        int remainder = requestedQuantity % groupSize;
+        if (remainder >= buyQty) {
+            // Bought enough to trigger free items — snap to full group
+            return (fullGroups + 1) * groupSize;
+        }
+        return requestedQuantity;
+    }
+
+    private boolean isOfferActive(Product product) {
+        if (product.getBuyQuantity() == null || product.getGetQuantity() == null) return false;
+        if (product.getBuyQuantity() < 1 || product.getGetQuantity() < 1) return false;
+        LocalDateTime now = LocalDateTime.now();
+        if (product.getDiscountStartDate() != null && now.isBefore(product.getDiscountStartDate())) return false;
+        if (product.getDiscountEndDate() != null && now.isAfter(product.getDiscountEndDate())) return false;
+        return true;
     }
 }
 

@@ -51,6 +51,10 @@ export interface Product {
   description?: string;
   price: number;
   discountPrice?: number;
+  discountStartDate?: string;
+  discountEndDate?: string;
+  buyQuantity?: number;
+  getQuantity?: number;
   unit?: string;
   active: boolean;
   featured: boolean;
@@ -70,6 +74,8 @@ export interface OrderItem {
   productName: string;
   unitPrice: number;
   quantity: number;
+  paidQuantity: number;
+  freeQuantity: number;
   subtotal: number;
 }
 
@@ -86,6 +92,10 @@ export interface Order {
   shippingPostalCode?: string;
   contactPhone?: string;
   notes?: string;
+  deliveryTimeSlot?: string;
+  deliveryMethod?: string;
+  expressDeliveryFee?: number;
+  plasticBagFee?: number;
   customerName: string;
   customerEmail: string;
   items: OrderItem[];

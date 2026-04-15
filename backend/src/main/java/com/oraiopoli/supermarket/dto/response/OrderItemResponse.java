@@ -18,6 +18,8 @@ public class OrderItemResponse {
     private String productName;
     private BigDecimal unitPrice;
     private int quantity;
+    private int paidQuantity;
+    private int freeQuantity;
     private BigDecimal subtotal;
 
     public static OrderItemResponse fromEntity(OrderItem item) {
@@ -27,6 +29,8 @@ public class OrderItemResponse {
                 .productName(item.getProductName())
                 .unitPrice(item.getUnitPrice())
                 .quantity(item.getQuantity())
+                .paidQuantity(item.getPaidQuantity())
+                .freeQuantity(item.getFreeQuantity())
                 .subtotal(item.getSubtotal())
                 .build();
     }

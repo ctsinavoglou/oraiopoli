@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -24,6 +25,12 @@ public class ProductRequest {
     private BigDecimal price;
 
     private BigDecimal discountPrice;
+
+    private LocalDateTime discountStartDate;
+    private LocalDateTime discountEndDate;
+
+    private Integer buyQuantity;
+    private Integer getQuantity;
 
     private String unit;
 

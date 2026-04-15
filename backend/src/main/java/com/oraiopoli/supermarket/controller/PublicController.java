@@ -124,7 +124,7 @@ public class PublicController {
     @GetMapping("/store-info")
     @Operation(summary = "Get public store information (name, hours, delivery fees, etc.)")
     public ResponseEntity<ApiResponse<Map<String, String>>> getStoreInfo() {
-        Map<String, String> info = Map.of(
+        Map<String, String> info = new java.util.HashMap<>(Map.of(
                 "store_name", storeSettingsService.getSettingOrDefault("store_name", "Oraiopoli"),
                 "store_phone", storeSettingsService.getSettingOrDefault("store_phone", ""),
                 "store_email", storeSettingsService.getSettingOrDefault("store_email", ""),
@@ -134,7 +134,12 @@ public class PublicController {
                 "free_delivery_threshold", storeSettingsService.getSettingOrDefault("free_delivery_threshold", "0"),
                 "min_order_amount", storeSettingsService.getSettingOrDefault("min_order_amount", "0"),
                 "currency", storeSettingsService.getSettingOrDefault("currency", "EUR")
-        );
+        ));
+        info.put("store_latitude", storeSettingsService.getSettingOrDefault("store_latitude", "0"));
+        info.put("store_longitude", storeSettingsService.getSettingOrDefault("store_longitude", "0"));
+        info.put("max_delivery_km", storeSettingsService.getSettingOrDefault("max_delivery_km", "10"));
+        info.put("express_delivery_fee", storeSettingsService.getSettingOrDefault("express_delivery_fee", "1.00"));
+        info.put("plastic_bag_fee_per_10", storeSettingsService.getSettingOrDefault("plastic_bag_fee_per_10", "0.10"));
         return ResponseEntity.ok(ApiResponse.success(info));
     }
 }

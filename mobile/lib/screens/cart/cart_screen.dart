@@ -56,7 +56,33 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                           Text(item.productName, style: const TextStyle(fontWeight: FontWeight.w600), maxLines: 2, overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 4),
-                          Text('€${item.unitPrice.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+                          Row(
+                            children: [
+                              if (item.hasDiscount) ...[
+                                Text('€${item.originalPrice.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 12, decoration: TextDecoration.lineThrough, color: AppColors.textHint)),
+                                const SizedBox(width: 4),
+                                Text('€${item.unitPrice.toStringAsFixed(2)}',
+                                  style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w700)),
+                              ] else
+                                Text('€${item.unitPrice.toStringAsFixed(2)}',
+                                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+                              if (item.hasOffer) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4)),
+                                  child: Text(item.offerLabel,
+                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (item.freeQuantity > 0) ...[
+                            const SizedBox(height: 4),
+                            Text('${item.paidQuantity} paid + ${item.freeQuantity} FREE',
+                              style: const TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w600)),
+                          ],
                         ])),
                         Column(children: [
                           Row(children: [
@@ -147,4 +173,3 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     );
   }
 }
-

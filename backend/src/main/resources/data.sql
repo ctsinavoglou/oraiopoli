@@ -19,8 +19,8 @@ VALUES ('Chris Tsi', 'tsi@oraiopoli.com', '+30 000 000 0000',
 ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;
 
 -- ── Address for Chris Tsi ──
-INSERT INTO addresses (label, address_line, city, postal_code, country, is_default, user_id, created_at, updated_at)
-SELECT 'Σπίτι', 'Ωραιόπολη 12', 'Καλλιθέα', '17676', 'Ελλάδα', true, u.id, NOW(), NOW()
+INSERT INTO addresses (label, address_line, city, postal_code, country, is_default, latitude, longitude, user_id, created_at, updated_at)
+SELECT 'Σπίτι', 'Asklipiou 33', 'Καλλιθέα', '17674', 'Ελλάδα', true, 37.94606005661072, 23.687834807587645, u.id, NOW(), NOW()
 FROM users u WHERE u.email = 'tsi@oraiopoli.com'
   AND NOT EXISTS (SELECT 1 FROM addresses a WHERE a.user_id = u.id AND a.label = 'Σπίτι');
 
@@ -188,7 +188,12 @@ INSERT INTO store_settings (setting_key, setting_value, description, created_at,
     ('min_order_amount',       '10.00',                    'Minimum order amount in euros',                  NOW(), NOW()),
     ('store_hours',            '08:00 - 21:00',            'Daily operating hours',                         NOW(), NOW()),
     ('currency',               'EUR',                      'Store currency code',                           NOW(), NOW()),
-    ('order_confirmation_msg', 'Ευχαριστούμε για την παραγγελία σας! Θα επικοινωνήσουμε σύντομα μαζί σας.', 'Message shown after order placement', NOW(), NOW())
+    ('order_confirmation_msg', 'Ευχαριστούμε για την παραγγελία σας! Θα επικοινωνήσουμε σύντομα μαζί σας.', 'Message shown after order placement', NOW(), NOW()),
+    ('store_latitude',         '37.95480244560913',                  'Store latitude for distance calculation',       NOW(), NOW()),
+    ('store_longitude',        '23.704514585017858',                  'Store longitude for distance calculation',      NOW(), NOW()),
+    ('max_delivery_km',        '3',                       'Maximum delivery distance in kilometers',       NOW(), NOW()),
+    ('express_delivery_fee',   '1.00',                    'Express delivery surcharge in euros',           NOW(), NOW()),
+    ('plastic_bag_fee_per_10', '0.10',                    'Plastic bag fee per €10 of order value',        NOW(), NOW())
 ON CONFLICT (setting_key) DO NOTHING;
 
 

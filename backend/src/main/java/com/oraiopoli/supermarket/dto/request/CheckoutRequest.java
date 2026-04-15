@@ -11,5 +11,9 @@ public class CheckoutRequest {
     private String notes;
 
     private String promotionCode;
+
+    private String deliveryTimeSlot;
+
+    private String deliveryMethod; // STANDARD, EXPRESS, PICKUP
 }
 

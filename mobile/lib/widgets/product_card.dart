@@ -61,6 +61,18 @@ class _ProductCardState extends State<ProductCard> {
                           style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
                         ),
                       ),
+                    )
+                  else if (product.hasOffer)
+                    Positioned(
+                      top: 6, left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(6)),
+                        child: Text(
+                          product.offerLabel,
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
+                        ),
+                      ),
                     ),
                   if (!product.inStock)
                     Positioned.fill(
@@ -115,6 +127,16 @@ class _ProductCardState extends State<ProductCard> {
                           const SizedBox(width: 4),
                           Text('€${product.discountPrice!.toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                        ] else if (product.hasOffer) ...[
+                          Text('€${product.price.toStringAsFixed(2)}',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4)),
+                            child: Text(product.offerLabel,
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                          ),
                         ] else
                           Text('€${product.price.toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),

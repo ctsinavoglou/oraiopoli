@@ -43,6 +43,12 @@ public class OrderService {
         Address address = addressRepository.findByIdAndUserId(request.getAddressId(), user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "id", request.getAddressId()));
 
+        // Resolve delivery method (default STANDARD)
+        String deliveryMethod = request.getDeliveryMethod() != null ? request.getDeliveryMethod().toUpperCase() : "STANDARD";
+        if (!deliveryMethod.equals("STANDARD") && !deliveryMethod.equals("EXPRESS") && !deliveryMethod.equals("PICKUP")) {
+            deliveryMethod = "STANDARD";
+        }
+
         // Create order
         Order order = Order.builder()
                 .orderNumber(generateOrderNumber())
@@ -53,6 +59,8 @@ public class OrderService {
                 .shippingPostalCode(address.getPostalCode())
                 .contactPhone(user.getPhone())
                 .notes(request.getNotes())
+                .deliveryTimeSlot(request.getDeliveryTimeSlot())
+                .deliveryMethod(deliveryMethod)
                 .build();
 
         BigDecimal totalAmount = BigDecimal.ZERO;
@@ -65,15 +73,33 @@ public class OrderService {
                 throw new BadRequestException("Insufficient stock for product: " + product.getName());
             }
 
-            BigDecimal effectivePrice = product.getDiscountPrice() != null ? product.getDiscountPrice() : product.getPrice();
-            BigDecimal subtotal = effectivePrice.multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+            BigDecimal effectivePrice = isDiscountActive(product) ? product.getDiscountPrice() : product.getPrice();
+
+            // Calculate paid quantity for buy+get offers
+            int totalQty = cartItem.getQuantity();
+            int paidQty = totalQty;
+            int freeQty = 0;
+            if (isOfferActive(product)) {
+                int groupSize = product.getBuyQuantity() + product.getGetQuantity();
+                int fullGroups = totalQty / groupSize;
+                int remainder = totalQty % groupSize;
+                freeQty = fullGroups * product.getGetQuantity();
+                if (remainder > product.getBuyQuantity()) {
+                    freeQty += remainder - product.getBuyQuantity();
+                }
+                paidQty = totalQty - freeQty;
+            }
+
+            BigDecimal subtotal = effectivePrice.multiply(BigDecimal.valueOf(paidQty));
 
             OrderItem orderItem = OrderItem.builder()
                     .order(order)
                     .product(product)
                     .productName(product.getName())
                     .unitPrice(effectivePrice)
-                    .quantity(cartItem.getQuantity())
+                    .quantity(totalQty)
+                    .paidQuantity(paidQty)
+                    .freeQuantity(freeQty)
                     .subtotal(subtotal)
                     .build();
 
@@ -101,14 +127,33 @@ public class OrderService {
             totalAmount = totalAmount.subtract(discount);
         }
 
-        // Calculate delivery fee from store settings
-        BigDecimal deliveryFee = new BigDecimal(storeSettingsService.getSettingOrDefault("delivery_fee", "0"));
-        BigDecimal freeDeliveryThreshold = new BigDecimal(storeSettingsService.getSettingOrDefault("free_delivery_threshold", "0"));
-        if (freeDeliveryThreshold.compareTo(BigDecimal.ZERO) > 0 && totalAmount.compareTo(freeDeliveryThreshold) >= 0) {
-            deliveryFee = BigDecimal.ZERO; // Free delivery
+        // Calculate plastic bag fee: rate per €10 of items subtotal
+        BigDecimal plasticBagRate = new BigDecimal(storeSettingsService.getSettingOrDefault("plastic_bag_fee_per_10", "0.10"));
+        BigDecimal itemsSubtotal = totalAmount; // subtotal after promo discount
+        int bagUnits = itemsSubtotal.divideToIntegralValue(BigDecimal.TEN).intValue();
+        BigDecimal plasticBagFee = plasticBagRate.multiply(BigDecimal.valueOf(Math.max(bagUnits, 0)));
+        order.setPlasticBagFee(plasticBagFee);
+        totalAmount = totalAmount.add(plasticBagFee);
+
+        // Calculate delivery fee based on delivery method
+        if ("PICKUP".equals(deliveryMethod)) {
+            order.setDeliveryFee(BigDecimal.ZERO);
+        } else {
+            BigDecimal deliveryFee = new BigDecimal(storeSettingsService.getSettingOrDefault("delivery_fee", "0"));
+            BigDecimal freeDeliveryThreshold = new BigDecimal(storeSettingsService.getSettingOrDefault("free_delivery_threshold", "0"));
+            if (freeDeliveryThreshold.compareTo(BigDecimal.ZERO) > 0 && totalAmount.compareTo(freeDeliveryThreshold) >= 0) {
+                deliveryFee = BigDecimal.ZERO; // Free delivery
+            }
+            order.setDeliveryFee(deliveryFee);
+            totalAmount = totalAmount.add(deliveryFee);
         }
-        order.setDeliveryFee(deliveryFee);
-        totalAmount = totalAmount.add(deliveryFee);
+
+        // Express delivery surcharge
+        if ("EXPRESS".equals(deliveryMethod)) {
+            BigDecimal expressFee = new BigDecimal(storeSettingsService.getSettingOrDefault("express_delivery_fee", "1.00"));
+            order.setExpressDeliveryFee(expressFee);
+            totalAmount = totalAmount.add(expressFee);
+        }
 
         order.setTotalAmount(totalAmount);
         order = orderRepository.save(order);
@@ -169,6 +214,23 @@ public class OrderService {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String uuid = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         return "ORD-" + timestamp + "-" + uuid;
+    }
+
+    private boolean isDiscountActive(Product product) {
+        if (product.getDiscountPrice() == null) return false;
+        LocalDateTime now = LocalDateTime.now();
+        if (product.getDiscountStartDate() != null && now.isBefore(product.getDiscountStartDate())) return false;
+        if (product.getDiscountEndDate() != null && now.isAfter(product.getDiscountEndDate())) return false;
+        return true;
+    }
+
+    private boolean isOfferActive(Product product) {
+        if (product.getBuyQuantity() == null || product.getGetQuantity() == null) return false;
+        if (product.getBuyQuantity() < 1 || product.getGetQuantity() < 1) return false;
+        LocalDateTime now = LocalDateTime.now();
+        if (product.getDiscountStartDate() != null && now.isBefore(product.getDiscountStartDate())) return false;
+        if (product.getDiscountEndDate() != null && now.isAfter(product.getDiscountEndDate())) return false;
+        return true;
     }
 }
 

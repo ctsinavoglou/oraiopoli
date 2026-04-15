@@ -100,6 +100,16 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                                       const SizedBox(width: 4),
                                       Text('€${product.discountPrice!.toStringAsFixed(2)}',
                                           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                                    ] else if (product.hasOffer) ...[
+                                      Text('€${product.price.toStringAsFixed(2)}',
+                                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4)),
+                                        child: Text(product.offerLabel,
+                                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+                                      ),
                                     ] else
                                       Text('€${product.price.toStringAsFixed(2)}',
                                           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.primary)),

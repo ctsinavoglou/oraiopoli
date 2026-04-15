@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,6 +43,18 @@ public class Product extends BaseEntity {
 
     @Column(name = "discount_price", precision = 10, scale = 2)
     private BigDecimal discountPrice;
+
+    @Column(name = "discount_start_date")
+    private LocalDateTime discountStartDate;
+
+    @Column(name = "discount_end_date")
+    private LocalDateTime discountEndDate;
+
+    @Column(name = "buy_quantity")
+    private Integer buyQuantity;  // e.g., 1 for "1+1", 2 for "2+1"
+
+    @Column(name = "get_quantity")
+    private Integer getQuantity;  // e.g., 1 for "1+1" or "2+1"
 
     private String unit; // e.g., "kg", "piece", "liter"
 

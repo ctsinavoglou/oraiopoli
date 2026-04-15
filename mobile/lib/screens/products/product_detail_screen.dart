@@ -67,6 +67,16 @@ class ProductDetailScreen extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Text('€${product.discountPrice!.toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                        ] else if (product.hasOffer) ...[
+                          Text('€${product.price.toStringAsFixed(2)}',
+                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
+                            child: Text('${product.offerLabel} FREE',
+                              style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
+                          ),
                         ] else
                           Text('€${product.price.toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primary)),

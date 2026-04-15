@@ -29,6 +29,9 @@ public class Address extends BaseEntity {
     @Builder.Default
     private boolean isDefault = false;
 
+    private Double latitude;
+    private Double longitude;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

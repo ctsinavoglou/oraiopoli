@@ -42,6 +42,8 @@ public class AddressService {
                 .postalCode(request.getPostalCode())
                 .country(request.getCountry())
                 .isDefault(request.isDefault())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
                 .user(user)
                 .build();
 
@@ -70,6 +72,8 @@ public class AddressService {
         address.setPostalCode(request.getPostalCode());
         address.setCountry(request.getCountry());
         address.setDefault(request.isDefault());
+        address.setLatitude(request.getLatitude());
+        address.setLongitude(request.getLongitude());
 
         address = addressRepository.save(address);
         return AddressResponse.fromEntity(address);

@@ -20,9 +20,30 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     boolean existsBySku(String sku);
 
     Page<Product> findByActiveTrueAndFeaturedTrue(Pageable pageable);
-    Page<Product> findByActiveTrue(Pageable pageable);
-    Page<Product> findByCategoryIdAndActiveTrue(Long categoryId, Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE p.active = true " +
+            "ORDER BY " +
+            "CASE WHEN p.buyQuantity IS NOT NULL AND p.getQuantity IS NOT NULL " +
+            "AND (p.discountStartDate IS NULL OR p.discountStartDate <= CURRENT_TIMESTAMP) " +
+            "AND (p.discountEndDate IS NULL OR p.discountEndDate >= CURRENT_TIMESTAMP) THEN 0 " +
+            "WHEN p.discountPrice IS NOT NULL " +
+            "AND (p.discountStartDate IS NULL OR p.discountStartDate <= CURRENT_TIMESTAMP) " +
+            "AND (p.discountEndDate IS NULL OR p.discountEndDate >= CURRENT_TIMESTAMP) THEN 1 " +
+            "ELSE 2 END ASC, " +
+            "p.name ASC")
+    Page<Product> findByActiveTrueSorted(Pageable pageable);
     Page<Product> findByBrandIdAndActiveTrue(Long brandId, Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.category.id = :categoryId AND p.active = true " +
+            "ORDER BY " +
+            "CASE WHEN p.buyQuantity IS NOT NULL AND p.getQuantity IS NOT NULL " +
+            "AND (p.discountStartDate IS NULL OR p.discountStartDate <= CURRENT_TIMESTAMP) " +
+            "AND (p.discountEndDate IS NULL OR p.discountEndDate >= CURRENT_TIMESTAMP) THEN 0 " +
+            "WHEN p.discountPrice IS NOT NULL " +
+            "AND (p.discountStartDate IS NULL OR p.discountStartDate <= CURRENT_TIMESTAMP) " +
+            "AND (p.discountEndDate IS NULL OR p.discountEndDate >= CURRENT_TIMESTAMP) THEN 1 " +
+            "ELSE 2 END ASC, " +
+            "p.name ASC")
+    Page<Product> findByCategoryIdAndActiveTrue(@Param("categoryId") Long categoryId, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.active = true AND " +
             "(LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) " +

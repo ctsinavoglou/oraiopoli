@@ -18,6 +18,8 @@ public class AddressResponse {
     private String postalCode;
     private String country;
     private boolean isDefault;
+    private Double latitude;
+    private Double longitude;
 
     public static AddressResponse fromEntity(Address address) {
         return AddressResponse.builder()
@@ -28,6 +30,8 @@ public class AddressResponse {
                 .postalCode(address.getPostalCode())
                 .country(address.getCountry())
                 .isDefault(address.isDefault())
+                .latitude(address.getLatitude())
+                .longitude(address.getLongitude())
                 .build();
     }
 }
