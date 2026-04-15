@@ -118,12 +118,17 @@ export type OrderStatus =
   | 'CANCELLED'
   | 'REFUNDED';
 
+export type BannerLinkType = 'NONE' | 'BANNER_PAGE' | 'PRODUCT' | 'CATEGORY' | 'EXTERNAL';
+
 export interface Banner {
   id: number;
   title: string;
   subtitle?: string;
   imageUrl: string;
   linkUrl?: string;
+  linkType?: BannerLinkType;
+  contentBody?: string;
+  productIds?: number[];
   displayOrder: number;
   active: boolean;
   startDate?: string;

@@ -3,12 +3,15 @@ package com.oraiopoli.supermarket.service;
 import com.oraiopoli.supermarket.dto.request.BannerRequest;
 import com.oraiopoli.supermarket.dto.response.BannerResponse;
 import com.oraiopoli.supermarket.entity.Banner;
+import com.oraiopoli.supermarket.entity.Product;
 import com.oraiopoli.supermarket.exception.ResourceNotFoundException;
 import com.oraiopoli.supermarket.repository.BannerRepository;
+import com.oraiopoli.supermarket.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -17,6 +20,7 @@ import java.util.List;
 public class BannerService {
 
     private final BannerRepository bannerRepository;
+    private final ProductRepository productRepository;
 
     public List<BannerResponse> getActiveBanners() {
         return bannerRepository.findActiveBanners().stream()
@@ -33,7 +37,7 @@ public class BannerService {
     public BannerResponse getBannerById(Long id) {
         Banner banner = bannerRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Banner", "id", id));
-        return BannerResponse.fromEntity(banner);
+        return BannerResponse.fromEntityWithProducts(banner);
     }
 
     @Transactional
@@ -43,14 +47,21 @@ public class BannerService {
                 .subtitle(request.getSubtitle())
                 .imageUrl(request.getImageUrl())
                 .linkUrl(request.getLinkUrl())
+                .linkType(request.getLinkType())
+                .contentBody(request.getContentBody())
                 .displayOrder(request.getDisplayOrder())
                 .active(request.isActive())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .build();
 
+        if (request.getProductIds() != null && !request.getProductIds().isEmpty()) {
+            List<Product> products = productRepository.findAllById(request.getProductIds());
+            banner.setProducts(new ArrayList<>(products));
+        }
+
         banner = bannerRepository.save(banner);
-        return BannerResponse.fromEntity(banner);
+        return BannerResponse.fromEntityWithProducts(banner);
     }
 
     @Transactional
@@ -62,13 +73,22 @@ public class BannerService {
         banner.setSubtitle(request.getSubtitle());
         banner.setImageUrl(request.getImageUrl());
         banner.setLinkUrl(request.getLinkUrl());
+        banner.setLinkType(request.getLinkType());
+        banner.setContentBody(request.getContentBody());
         banner.setDisplayOrder(request.getDisplayOrder());
         banner.setActive(request.isActive());
         banner.setStartDate(request.getStartDate());
         banner.setEndDate(request.getEndDate());
 
+        if (request.getProductIds() != null) {
+            List<Product> products = productRepository.findAllById(request.getProductIds());
+            banner.setProducts(new ArrayList<>(products));
+        } else {
+            banner.getProducts().clear();
+        }
+
         banner = bannerRepository.save(banner);
-        return BannerResponse.fromEntity(banner);
+        return BannerResponse.fromEntityWithProducts(banner);
     }
 
     @Transactional

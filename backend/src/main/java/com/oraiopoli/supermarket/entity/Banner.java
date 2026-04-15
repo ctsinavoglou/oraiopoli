@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "banners", indexes = {
@@ -27,6 +29,23 @@ public class Banner extends BaseEntity {
 
     @Column(name = "link_url")
     private String linkUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "link_type")
+    @Builder.Default
+    private LinkType linkType = LinkType.NONE;
+
+    @Column(name = "content_body", columnDefinition = "TEXT")
+    private String contentBody;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "banner_products",
+            joinColumns = @JoinColumn(name = "banner_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    @Builder.Default
+    private List<Product> products = new ArrayList<>();
 
     @Column(name = "display_order")
     @Builder.Default

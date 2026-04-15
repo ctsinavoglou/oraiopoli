@@ -62,6 +62,11 @@ class ProductRepository {
     return (res.data['data'] as List).map((b) => Banner.fromJson(b)).toList();
   }
 
+  Future<Banner> getBannerById(int id) async {
+    final res = await _dio.get('${ApiConstants.publicBanners}/$id');
+    return Banner.fromJson(res.data['data']);
+  }
+
   Future<List<Promotion>> getPromotions() async {
     final res = await _dio.get(ApiConstants.publicPromotions);
     return (res.data['data'] as List).map((p) => Promotion.fromJson(p)).toList();

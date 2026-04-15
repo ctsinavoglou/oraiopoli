@@ -18,6 +18,7 @@ import '../../screens/orders/orders_screen.dart';
 import '../../screens/orders/order_detail_screen.dart';
 import '../../screens/profile/profile_screen.dart';
 import '../../screens/address/address_screen.dart';
+import '../../screens/banners/banner_detail_screen.dart';
 
 /// A [ChangeNotifier] that fires whenever the auth state changes,
 /// so GoRouter re-evaluates its redirect without being recreated.
@@ -64,6 +65,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen()),
           GoRoute(path: '/address', builder: (_, __) => const AddressScreen()),
+          GoRoute(
+            path: '/banner/:id',
+            builder: (_, state) => BannerDetailScreen(bannerId: int.parse(state.pathParameters['id']!)),
+          ),
           GoRoute(path: '/orders', builder: (_, __) => const OrdersScreen()),
           GoRoute(
             path: '/orders/:id',

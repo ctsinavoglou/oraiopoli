@@ -52,6 +52,7 @@ dependencies:
   shimmer: ^3.0.0
   flutter_svg: ^2.0.17
   badges: ^3.1.2
+  flutter_markdown: ^0.7.6
   
   # Utils
   intl: ^0.20.2

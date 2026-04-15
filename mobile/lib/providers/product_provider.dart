@@ -14,6 +14,10 @@ final bannersProvider = FutureProvider<List<Banner>>((ref) {
   return ref.read(productRepositoryProvider).getBanners();
 });
 
+final bannerDetailProvider = FutureProvider.autoDispose.family<Banner, int>((ref, id) {
+  return ref.read(productRepositoryProvider).getBannerById(id);
+});
+
 final productsProvider = FutureProvider.family<List<Product>, int>((ref, page) {
   return ref.read(productRepositoryProvider).getProducts(page: page);
 });

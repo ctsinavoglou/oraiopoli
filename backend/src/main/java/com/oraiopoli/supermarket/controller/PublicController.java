@@ -113,6 +113,12 @@ public class PublicController {
         return ResponseEntity.ok(ApiResponse.success(bannerService.getActiveBanners()));
     }
 
+    @GetMapping("/banners/{id}")
+    @Operation(summary = "Get banner by ID")
+    public ResponseEntity<ApiResponse<BannerResponse>> getBannerById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(bannerService.getBannerById(id)));
+    }
+
     // Promotions
     @GetMapping("/promotions")
     @Operation(summary = "Get active promotions")

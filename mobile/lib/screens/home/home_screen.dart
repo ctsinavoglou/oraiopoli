@@ -48,8 +48,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _onBannerTap(models.Banner banner, BuildContext context) {
-    if (banner.linkUrl != null && banner.linkUrl!.isNotEmpty) {
-      context.push(banner.linkUrl!);
+    final linkType = banner.linkType;
+    if (linkType == null || linkType == 'NONE') return;
+    switch (linkType) {
+      case 'BANNER_PAGE':
+        context.push('/banner/${banner.id}');
+      case 'PRODUCT':
+        if (banner.linkUrl != null && banner.linkUrl!.isNotEmpty) {
+          context.push('/products/${banner.linkUrl}');
+        }
+      case 'CATEGORY':
+        if (banner.linkUrl != null && banner.linkUrl!.isNotEmpty) {
+          context.push('/products/category/${banner.linkUrl}');
+        }
+      case 'EXTERNAL':
+        // TODO: add url_launcher dependency to open external URLs
+        break;
+      default:
+        break;
     }
   }
 

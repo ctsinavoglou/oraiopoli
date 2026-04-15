@@ -374,13 +374,21 @@ class Banner {
   final String? subtitle;
   final String imageUrl;
   final String? linkUrl;
+  final String? linkType;
+  final String? contentBody;
+  final List<Product>? products;
 
   Banner({required this.id, required this.title, this.subtitle,
-    required this.imageUrl, this.linkUrl});
+    required this.imageUrl, this.linkUrl, this.linkType, this.contentBody,
+    this.products});
 
   factory Banner.fromJson(Map<String, dynamic> json) => Banner(
     id: json['id'], title: json['title'], subtitle: json['subtitle'],
     imageUrl: json['imageUrl'], linkUrl: json['linkUrl'],
+    linkType: json['linkType'], contentBody: json['contentBody'],
+    products: json['products'] != null
+        ? (json['products'] as List).map((p) => Product.fromJson(p)).toList()
+        : null,
   );
 }
 

@@ -1,9 +1,11 @@
 package com.oraiopoli.supermarket.dto.request;
 
+import com.oraiopoli.supermarket.entity.LinkType;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class BannerRequest {
@@ -16,6 +18,9 @@ public class BannerRequest {
     private String imageUrl;
 
     private String linkUrl;
+    private LinkType linkType = LinkType.NONE;
+    private String contentBody;
+    private List<Long> productIds;
     private int displayOrder;
     private boolean active = true;
     private LocalDateTime startDate;
