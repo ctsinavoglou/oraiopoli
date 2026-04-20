@@ -137,6 +137,7 @@ public class ProductService {
                 .unit(parseUnit(request.getUnit()))
                 .weightQuantity(request.getWeightQuantity())
                 .weightUnit(request.getWeightUnit())
+                .maxQuantityPerOrder(request.getMaxQuantityPerOrder())
                 .active(request.isActive())
                 .featured(request.isFeatured())
                 .thumbnailUrl(request.getThumbnailUrl())
@@ -201,6 +202,7 @@ public class ProductService {
         product.setUnit(parseUnit(request.getUnit()));
         product.setWeightQuantity(request.getWeightQuantity());
         product.setWeightUnit(request.getWeightUnit());
+        product.setMaxQuantityPerOrder(request.getMaxQuantityPerOrder());
         product.setActive(request.isActive());
         product.setFeatured(request.isFeatured());
         product.setThumbnailUrl(request.getThumbnailUrl());

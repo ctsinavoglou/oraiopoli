@@ -37,7 +37,7 @@ const emptyForm = {
   weightQuantity: '',
   weightUnit: 'gr',
   active: true, featured: false, thumbnailUrl: '', categoryId: '', brandId: '',
-  stockQuantity: '0', lowStockThreshold: '10',
+  stockQuantity: '', lowStockThreshold: '10', maxQuantityPerOrder: '',
 };
 
 export default function ProductsPage() {
@@ -87,7 +87,8 @@ export default function ProductsPage() {
       weightUnit: p.weightUnit || 'gr',
       active: p.active, featured: p.featured, thumbnailUrl: p.thumbnailUrl || '',
       categoryId: p.categoryId?.toString() || '', brandId: p.brandId?.toString() || '',
-      stockQuantity: p.stockQuantity.toString(), lowStockThreshold: '10',
+      stockQuantity: p.stockQuantity === -1 ? '' : p.stockQuantity.toString(), lowStockThreshold: '10',
+      maxQuantityPerOrder: p.maxQuantityPerOrder?.toString() || '',
     });
     setModalOpen(true);
   };
@@ -110,7 +111,8 @@ export default function ProductsPage() {
       weightUnit: form.unit === 'WEIGHED' && form.weightUnit ? form.weightUnit : null,
       thumbnailUrl: form.thumbnailUrl, categoryId: Number(form.categoryId),
       brandId: form.brandId ? Number(form.brandId) : null,
-      stockQuantity: parseInt(form.stockQuantity), lowStockThreshold: parseInt(form.lowStockThreshold),
+      stockQuantity: form.stockQuantity ? parseInt(form.stockQuantity) : -1, lowStockThreshold: parseInt(form.lowStockThreshold),
+      maxQuantityPerOrder: form.maxQuantityPerOrder ? parseInt(form.maxQuantityPerOrder) : null,
     });
   };
 
@@ -199,7 +201,7 @@ export default function ProductsPage() {
                         </div>
                       )}
                     </td>
-                    <td style={td}><span style={{ color: p.stockQuantity <= 10 ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{p.stockQuantity}</span></td>
+                    <td style={td}><span style={{ color: p.stockQuantity === -1 ? 'var(--gray-500)' : p.stockQuantity <= 10 ? 'var(--red)' : 'var(--green)', fontWeight: 600 }}>{p.stockQuantity === -1 ? '∞' : p.stockQuantity}</span></td>
                     <td style={td}>{p.categoryName}</td>
                     <td style={td}><span style={{ color: p.active ? 'var(--green)' : 'var(--red)', fontWeight: 600, fontSize: '0.8rem' }}>{p.active ? 'Active' : 'Inactive'}</span></td>
                     <td style={td}>
@@ -324,8 +326,9 @@ export default function ProductsPage() {
               {brands?.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
             </select>
           </div>
-          <Input label="Stock Quantity" type="number" value={form.stockQuantity} onChange={(e) => set('stockQuantity', e.target.value)} />
+          <Input label="Stock Quantity" type="number" placeholder="Unlimited" value={form.stockQuantity} onChange={(e) => set('stockQuantity', e.target.value)} />
           <Input label="Low Stock Threshold" type="number" value={form.lowStockThreshold} onChange={(e) => set('lowStockThreshold', e.target.value)} />
+          <Input label="Max Qty Per Order" type="number" min="1" placeholder="Unlimited" value={form.maxQuantityPerOrder} onChange={(e) => set('maxQuantityPerOrder', e.target.value)} />
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--gray-700)' }}>Description</label>
             <textarea value={form.description} onChange={(e) => set('description', e.target.value)}

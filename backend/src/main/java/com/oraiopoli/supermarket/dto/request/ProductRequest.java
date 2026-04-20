@@ -37,6 +37,9 @@ public class ProductRequest {
     private BigDecimal weightQuantity;
     private String weightUnit;
 
+    @Min(value = 1, message = "Max quantity per order must be at least 1")
+    private Integer maxQuantityPerOrder;
+
     private boolean active = true;
     private boolean featured = false;
 
@@ -47,8 +50,8 @@ public class ProductRequest {
 
     private Long brandId;
 
-    @Min(value = 0, message = "Stock quantity cannot be negative")
-    private int stockQuantity = 0;
+    @Min(value = -1, message = "Stock quantity must be -1 (unlimited) or >= 0")
+    private int stockQuantity = -1;
 
     private int lowStockThreshold = 10;
 

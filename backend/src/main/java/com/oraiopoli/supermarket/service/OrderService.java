@@ -69,7 +69,7 @@ public class OrderService {
             Product product = cartItem.getProduct();
 
             // Check stock
-            if (product.getInventory() == null || product.getInventory().getQuantity() < cartItem.getQuantity()) {
+            if (product.getInventory() == null || (!product.getInventory().isUnlimited() && product.getInventory().getQuantity() < cartItem.getQuantity())) {
                 throw new BadRequestException("Insufficient stock for product: " + product.getName());
             }
 
@@ -109,10 +109,12 @@ public class OrderService {
             order.getItems().add(orderItem);
             totalAmount = totalAmount.add(subtotal);
 
-            // Deduct inventory
+            // Deduct inventory (skip if unlimited)
             Inventory inventory = product.getInventory();
-            inventory.setQuantity(inventory.getQuantity() - cartItem.getQuantity());
-            inventoryRepository.save(inventory);
+            if (!inventory.isUnlimited()) {
+                inventory.setQuantity(inventory.getQuantity() - cartItem.getQuantity());
+                inventoryRepository.save(inventory);
+            }
         }
 
         // Enforce minimum order amount

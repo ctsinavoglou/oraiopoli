@@ -65,6 +65,9 @@ public class Product extends BaseEntity {
     @Column(name = "weight_unit")
     private String weightUnit; // gr, ml, cm, pieces
 
+    @Column(name = "max_quantity_per_order")
+    private Integer maxQuantityPerOrder;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean active = true;

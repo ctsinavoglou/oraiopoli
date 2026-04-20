@@ -45,6 +45,7 @@ public class CartService {
         }
 
         int availableStock = product.getInventory().getQuantity();
+        boolean unlimitedStock = product.getInventory().isUnlimited();
 
         // Check if item already in cart
         var existingItem = cartItemRepository.findByCartIdAndProductId(cart.getId(), product.getId());
@@ -53,16 +54,22 @@ public class CartService {
             CartItem item = existingItem.get();
             int rawNew = item.getQuantity() + request.getQuantity();
             int newQuantity = adjustQuantityForOffer(product, rawNew, item.getQuantity());
-            if (newQuantity > availableStock) {
+            if (!unlimitedStock && newQuantity > availableStock) {
                 throw new BadRequestException("Only " + availableStock + " available in stock" +
                         (item.getQuantity() > 0 ? " (" + item.getQuantity() + " already in cart)" : ""));
+            }
+            if (product.getMaxQuantityPerOrder() != null && newQuantity > product.getMaxQuantityPerOrder()) {
+                throw new BadRequestException("Maximum " + product.getMaxQuantityPerOrder() + " allowed per order");
             }
             item.setQuantity(newQuantity);
             cartItemRepository.save(item);
         } else {
             int newQuantity = adjustQuantityForOffer(product, request.getQuantity(), 0);
-            if (newQuantity > availableStock) {
+            if (!unlimitedStock && newQuantity > availableStock) {
                 throw new BadRequestException("Only " + availableStock + " available in stock");
+            }
+            if (product.getMaxQuantityPerOrder() != null && newQuantity > product.getMaxQuantityPerOrder()) {
+                throw new BadRequestException("Maximum " + product.getMaxQuantityPerOrder() + " allowed per order");
             }
             CartItem item = CartItem.builder()
                     .cart(cart)
@@ -93,10 +100,14 @@ public class CartService {
             cart.getItems().remove(item);
         } else {
             int adjustedQuantity = adjustQuantityForOffer(item.getProduct(), quantity, item.getQuantity());
+            boolean isUnlimited = item.getProduct().getInventory() != null && item.getProduct().getInventory().isUnlimited();
             int availableStock = item.getProduct().getInventory() != null
                     ? item.getProduct().getInventory().getQuantity() : 0;
-            if (adjustedQuantity > availableStock) {
+            if (!isUnlimited && adjustedQuantity > availableStock) {
                 throw new BadRequestException("Only " + availableStock + " available in stock");
+            }
+            if (item.getProduct().getMaxQuantityPerOrder() != null && adjustedQuantity > item.getProduct().getMaxQuantityPerOrder()) {
+                throw new BadRequestException("Maximum " + item.getProduct().getMaxQuantityPerOrder() + " allowed per order");
             }
             item.setQuantity(adjustedQuantity);
             cartItemRepository.save(item);

@@ -70,6 +70,7 @@ export interface Product {
   brandId?: number;
   stockQuantity: number;
   inStock: boolean;
+  maxQuantityPerOrder?: number;
   images?: ProductImage[];
 }
 

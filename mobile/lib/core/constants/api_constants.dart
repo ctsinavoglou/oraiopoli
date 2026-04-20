@@ -3,7 +3,11 @@ import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode, defaultTarge
 class ApiConstants {
   static String get baseUrl {
     if (kIsWeb) {
-      final host = Uri.base.host; // e.g. "192.168.2.3" or "localhost"
+      final host = Uri.base.host;
+      // If accessed via runtsi.online domain, use Cloudflare tunnel
+      if (host.endsWith('runtsi.online')) {
+        return 'https://app.runtsi.online';
+      }
       return 'http://$host:8080';
     }
     if (defaultTargetPlatform == TargetPlatform.android) {

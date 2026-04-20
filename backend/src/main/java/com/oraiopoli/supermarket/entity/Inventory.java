@@ -27,11 +27,15 @@ public class Inventory extends BaseEntity {
     private int lowStockThreshold = 10;
 
     public boolean isInStock() {
-        return quantity > 0;
+        return quantity == -1 || quantity > 0;
     }
 
     public boolean isLowStock() {
-        return quantity > 0 && quantity <= lowStockThreshold;
+        return quantity != -1 && quantity > 0 && quantity <= lowStockThreshold;
+    }
+
+    public boolean isUnlimited() {
+        return quantity == -1;
     }
 }
 

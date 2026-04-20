@@ -97,6 +97,7 @@ class Product {
   final String? brandName;
   final int stockQuantity;
   final bool inStock;
+  final int? maxQuantityPerOrder;
   final List<ProductImage>? images;
 
   Product({required this.id, required this.name, required this.slug, this.sku,
@@ -106,7 +107,7 @@ class Product {
     this.pricePerUnit, this.discountPricePerUnit, this.pricePerUnitLabel,
     required this.active, required this.featured, this.thumbnailUrl,
     this.categoryName, this.categoryId, this.brandName,
-    required this.stockQuantity, required this.inStock, this.images});
+    required this.stockQuantity, required this.inStock, this.maxQuantityPerOrder, this.images});
 
   factory Product.fromJson(Map<String, dynamic> json) => Product(
     id: json['id'], name: json['name'], slug: json['slug'] ?? '',
@@ -125,6 +126,7 @@ class Product {
     thumbnailUrl: json['thumbnailUrl'], categoryName: json['categoryName'],
     categoryId: json['categoryId'], brandName: json['brandName'],
     stockQuantity: json['stockQuantity'] ?? 0, inStock: json['inStock'] ?? false,
+    maxQuantityPerOrder: json['maxQuantityPerOrder'],
     images: json['images'] != null
         ? (json['images'] as List).map((i) => ProductImage.fromJson(i)).toList()
         : null,
@@ -199,13 +201,14 @@ class CartItem {
   final String? unit;
   final double? weightQuantity;
   final String? weightUnit;
+  final int? maxQuantityPerOrder;
 
   CartItem({required this.id, required this.productId, required this.productName,
     this.productThumbnail, required this.originalPrice, required this.unitPrice,
     required this.quantity, required this.paidQuantity, required this.freeQuantity,
     required this.subtotal, required this.stockQuantity,
     this.buyQuantity, this.getQuantity,
-    this.unit, this.weightQuantity, this.weightUnit});
+    this.unit, this.weightQuantity, this.weightUnit, this.maxQuantityPerOrder});
 
   bool get hasDiscount => unitPrice < originalPrice;
   bool get hasOffer => buyQuantity != null && getQuantity != null && buyQuantity! >= 1 && getQuantity! >= 1;
@@ -249,6 +252,7 @@ class CartItem {
     unit: json['unit'],
     weightQuantity: json['weightQuantity'] != null ? (json['weightQuantity'] as num).toDouble() : null,
     weightUnit: json['weightUnit'],
+    maxQuantityPerOrder: json['maxQuantityPerOrder'],
   );
 }
 

@@ -32,6 +32,7 @@ public class CartItemResponse {
     private String unit;
     private BigDecimal weightQuantity;
     private String weightUnit;
+    private Integer maxQuantityPerOrder;
 
     private static boolean isWithinDateRange(Product product) {
         LocalDateTime now = LocalDateTime.now();
@@ -98,6 +99,7 @@ public class CartItemResponse {
                 .unit(product.getUnit() != null ? product.getUnit().name() : null)
                 .weightQuantity(product.getUnit() == UnitType.WEIGHED ? product.getWeightQuantity() : null)
                 .weightUnit(product.getUnit() == UnitType.WEIGHED ? product.getWeightUnit() : null)
+                .maxQuantityPerOrder(product.getMaxQuantityPerOrder())
                 .build();
     }
 }

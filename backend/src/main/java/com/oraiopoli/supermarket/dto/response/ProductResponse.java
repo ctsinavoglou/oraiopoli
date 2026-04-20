@@ -43,6 +43,7 @@ public class ProductResponse {
     private Long brandId;
     private int stockQuantity;
     private boolean inStock;
+    private Integer maxQuantityPerOrder;
     private List<ProductImageResponse> images;
 
     /**
@@ -167,6 +168,7 @@ public class ProductResponse {
                 .brandId(product.getBrand() != null ? product.getBrand().getId() : null)
                 .stockQuantity(product.getInventory() != null ? product.getInventory().getQuantity() : 0)
                 .inStock(product.getInventory() != null && product.getInventory().isInStock())
+                .maxQuantityPerOrder(product.getMaxQuantityPerOrder())
                 .images(product.getImages() != null
                         ? product.getImages().stream().map(ProductImageResponse::fromEntity).toList()
                         : null);
@@ -191,7 +193,8 @@ public class ProductResponse {
                 .categoryId(product.getCategory() != null ? product.getCategory().getId() : null)
                 .brandName(product.getBrand() != null ? product.getBrand().getName() : null)
                 .stockQuantity(product.getInventory() != null ? product.getInventory().getQuantity() : 0)
-                .inStock(product.getInventory() != null && product.getInventory().isInStock());
+                .inStock(product.getInventory() != null && product.getInventory().isInStock())
+                .maxQuantityPerOrder(product.getMaxQuantityPerOrder());
         applyPricePerUnit(builder, product, activeDiscount);
         return builder.build();
     }
@@ -225,6 +228,7 @@ public class ProductResponse {
                 .brandId(product.getBrand() != null ? product.getBrand().getId() : null)
                 .stockQuantity(product.getInventory() != null ? product.getInventory().getQuantity() : 0)
                 .inStock(product.getInventory() != null && product.getInventory().isInStock())
+                .maxQuantityPerOrder(product.getMaxQuantityPerOrder())
                 .images(product.getImages() != null
                         ? product.getImages().stream().map(ProductImageResponse::fromEntity).toList()
                         : null);

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import '../../core/theme/app_theme.dart';
+import '../../models/models.dart';
 import '../../providers/cart_provider.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
@@ -97,7 +98,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                               child: Text(item.totalWeightLabel ?? '${item.quantity}', style: const TextStyle(fontWeight: FontWeight.w600))),
                             _qtyBtn(
                               Icons.add,
-                              item.quantity >= item.stockQuantity
+                              _effectiveMax(item) != null && item.quantity >= _effectiveMax(item)!
                                   ? null
                                   : () async {
                                       try {
@@ -106,13 +107,13 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                                         if (context.mounted) _showError(context, e);
                                       }
                                     },
-                              disabled: item.quantity >= item.stockQuantity,
+                              disabled: _effectiveMax(item) != null && item.quantity >= _effectiveMax(item)!,
                             ),
                           ]),
-                          if (item.quantity >= item.stockQuantity)
+                          if (_effectiveMax(item) != null && item.quantity >= _effectiveMax(item)!)
                             Padding(
                               padding: const EdgeInsets.only(top: 4),
-                              child: Text('Max: ${item.stockQuantity}', style: const TextStyle(fontSize: 10, color: AppColors.warning, fontWeight: FontWeight.w600)),
+                              child: Text('Max: ${_effectiveMax(item)}', style: const TextStyle(fontSize: 10, color: AppColors.warning, fontWeight: FontWeight.w600)),
                             ),
                           const SizedBox(height: 4),
                           GestureDetector(
@@ -161,6 +162,15 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         child: Icon(icon, size: 16, color: disabled ? AppColors.textHint : null),
       ),
     );
+  }
+
+  /// Returns the effective max quantity for a cart item, or null if unlimited.
+  int? _effectiveMax(CartItem item) {
+    final bool unlimitedStock = item.stockQuantity == -1;
+    final int? maxPerOrder = item.maxQuantityPerOrder;
+    if (unlimitedStock) return maxPerOrder; // null if no limit at all
+    if (maxPerOrder != null && maxPerOrder < item.stockQuantity) return maxPerOrder;
+    return item.stockQuantity;
   }
 
   void _showError(BuildContext context, Object e) {
