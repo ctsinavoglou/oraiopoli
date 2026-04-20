@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:dio/dio.dart';
+import '../../core/responsive/responsive.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
@@ -104,10 +105,7 @@ class BannerDetailScreen extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, childAspectRatio: 0.68,
-                      crossAxisSpacing: 12, mainAxisSpacing: 12,
-                    ),
+                    gridDelegate: Responsive.gridDelegate(context),
                     itemCount: banner.products!.length,
                     itemBuilder: (_, i) {
                       final product = banner.products![i];

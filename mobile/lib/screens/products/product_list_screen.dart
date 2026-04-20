@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dio/dio.dart';
+import '../../core/responsive/responsive.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
@@ -26,9 +27,7 @@ class ProductListScreen extends ConsumerWidget {
             ? const Center(child: Text('No products in this category'))
             : GridView.builder(
                 padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, childAspectRatio: 0.68, crossAxisSpacing: 12, mainAxisSpacing: 12,
-                ),
+                gridDelegate: Responsive.gridDelegate(context),
                 itemCount: list.length,
                 itemBuilder: (_, i) => ProductCard(
                   product: list[i],

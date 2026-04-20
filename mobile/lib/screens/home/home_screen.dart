@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
+import '../../core/responsive/responsive.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/models.dart' as models;
 import '../../providers/product_provider.dart';
@@ -231,9 +232,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, childAspectRatio: 0.68, crossAxisSpacing: 12, mainAxisSpacing: 12,
-                      ),
+                      gridDelegate: Responsive.gridDelegate(context),
                       itemCount: list.length,
                       itemBuilder: (_, i) => ProductCard(
                         product: list[i],
@@ -325,7 +324,7 @@ class _ProductSearchDelegate extends SearchDelegate<String> {
             ? const Center(child: Text('No results found'))
             : GridView.builder(
                 padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, childAspectRatio: 0.68, crossAxisSpacing: 12, mainAxisSpacing: 12),
+                gridDelegate: Responsive.gridDelegate(context),
                 itemCount: list.length,
                 itemBuilder: (_, i) => ProductCard(
                   product: list[i],
